@@ -1,0 +1,104 @@
+---
+title: Postgres
+---
+
+## Overview
+
+Postgres settlement layer is a settlement layer that is using following tech under the hood that we curated for you to be as fast as possible:
+
+- PostgreSQL (duh!)
+- oRPC (for communication between the settlement layer and the app)
+- drizzle-orm (for database operations)
+- better-auth (for authentication)
+
+## Development
+
+### DB Schema
+
+Pg settlement layer uses drizzle-orm to interact with the database. When you want to store some data in a db you have to create a table schema first.
+You can do this in `db-schema.ts` file.
+
+```ts title="_fundset/settlement-layer/pg/db-schema.ts"
+import { pgTable, varchar, integer } from 'drizzle-orm/pg-core';
+
+export const countersTable = pgTable('counters', {
+  userId: varchar({ length: 255 }).notNull().primaryKey(),
+  value: integer().notNull(),
+});
+
+export const globalCounterTable = pgTable('global_counter', {
+  value: integer().notNull().default(0),
+});
+```
+
+<Callout title="Want to learn more?">
+  Checkout the [drizzle docs](https://orm.drizzle.team/docs/sql-schema-declaration) to see how
+  excatly build the db schema.
+</Callout>
+
+### Context Provider
+
+`_fundset/settlement-layer/pg/index.tsx` file is a context provider component so if you need anything that will need to wrap the app with this specifc SL, you can add it there:
+
+```ts title="_fundset/settlement-layer/pg/index.tsx"
+const PgSettlementLayerProvider = ({ children }: React.PropsWithChildren) => {
+  return <>{children}</>; // [!code highlight]
+};
+
+export default PgSettlementLayerProvider;
+
+```
+
+### Migrations
+
+`drizzle` folder contains all the migrations for the db. You can use `drizzle-kit` to generate the migrations and run them against a database.
+
+```bash
+pnpm drizzle-kit generate
+pnpm drizzle-kit migrate
+```
+
+### oRPC
+
+`_fundset/settlement-layer/pg/orpc` folder contains all the orpc files that are required for it to work. Check out the [oRPC docs](https://orpc.unnoq.com/docs/getting-started) to learn more about it.
+
+You should be particularly interested in `router.ts` file, where you can add your own modules:
+
+```ts title="_fundset/settlement-layer/pg/orpc/router.ts"
+import { counterModule } from '../modules/counter/orpc';
+
+export const router = {
+  ...counterModule,
+};
+```
+
+### Modules
+
+`_fundset/settlement-layer/pg/modules` folder contains all the modules that are available for the pg settlement layer.
+Check out the docs on [how to build your own modules](/docs/how-to-implement-module)
+
+### Payload CMS Plugin
+
+`_fundset/settlement-layer/pg/plugin` folder contains the payload CMS plugin files. If you want you can extend it to suit your needs. Check out the [payload docs](https://payloadcms.com/docs/plugins/overview) to learn more about it.
+
+## Deployment
+
+This is a step by step guide on how to deploy an app with a pg settlement layer to Vercel.
+
+1. Publish your fundset app's code to github
+2. Create a postgres database instance e.g. with Neon on Vercel
+3. set the database connection string in the `DATABASE_URI` environment variable in your .env file
+4. in the `packages/web` folder, create Payload migrations with `pnpm payload migrate:create`
+5. run Payload migrations with `pnpm payload migrate`
+6. run `pnpm drizzle-kit generate` to generate drizzle migrations
+7. run `pnpm drizzle-kit migrate` to migrate the database
+8. Create a new Vercel project out of it and add the following environment variables to your Vercel project:
+   - `DATABASE_URI` - your postgres database connection string
+   - `PAYLOAD_SECRET` - a random string
+   - `BETTER_AUTH_SECRET` - a random string
+   - `NEXT_PUBLIC_APP_URL` - URL of your fundset app (e.g. `https://<your-app-name>.vercel.app`)
+9. Deploy your Vercel project.
+10. Go to `/admin` page and create a new admin user and log in.
+11. In the admin dashboard, go to `Fundset Settlement Layer` Global and add a settlement layer config
+
+Your app is now ready to use!

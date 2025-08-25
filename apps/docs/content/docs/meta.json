@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "---Getting started---",
+    "index",
+    "quick-start",
+    "what-is-fundset",
+    "manual-installation",
+    "---Development---",
+    "structure",
+    "modules",
+    "how-to-implement-module",
+    "settlement-layer",
+    "plugins",
+    "customising-appearance",
+    "auth",
+    "---Settlement layers---",
+    "(settlement-layers)/pg",
+    "(settlement-layers)/evm",
+    "---Deployments---",
+    "self-hosting"
+  ]
+}

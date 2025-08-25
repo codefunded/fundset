@@ -1,0 +1,53 @@
+---
+title: Fundset structure
+description: ''
+---
+
+## Repo structure
+
+Fundset is a monorepo that is using pnpm. When you initialise your new project from a template you're gonna get `packages` directory that contains all the packages required for your settlement layer to work e.g for postgres you're gonna get `pg` package that contains a docker compose file so you can quickly run development script on your local machine. For EVM settlement layer, you're gonna a local instance of a blockchain to test your app on etc.
+
+<Files>
+  <Folder name="packages" defaultOpen>
+    <Folder name="pg" />
+    <Folder name="web" />
+  </Folder>
+  <File name="package.json" />
+</Files>
+
+The actual app is located under `packages/web` dir. There's a Next.js application with Payload CMS, shadcn/ui, Tanstack Query, next-intl and posthog.
+
+## `_fundset` directory
+
+Inside the `web` package, in the `src` dir, there's a `_fundset` folder.
+
+<Files>
+  <Folder name="web" defaultOpen>
+    <Folder name="src" defaultOpen>
+      <Folder name="_fundset" defaultOpen>
+        <Folder name="base-plugin"/> 
+        <Folder name="config"/>
+        <Folder name="settlement-layer"/>
+      </Folder>
+    <Folder name="app"/>
+    </Folder>
+
+  </Folder>
+  <File name="package.json" />
+</Files>
+
+### `_fundset` directory
+
+`_fundset` directory contains all the files that are required for the template to work.
+
+### `base-plugin`
+
+`base-plugin` contains the base plugin for payload CMS that is used to create a base for a settlement layer.
+
+### `config`
+
+`config` is a directory that contains a helper for getting the settlement layer on the server side.
+
+### `settlement-layer`
+
+`settlement-layer` is the most important directory as it contains the base logic to use a given settlement layer as well as the actual settlement layers that are installed into your project. It also contains modules, which are tied to a settlement layer.

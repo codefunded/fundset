@@ -1,0 +1,54 @@
+{
+  "HomePage": {
+    "title": "Hello Fundset!",
+    "headliner": "Build the future of Internet Finance",
+    "increment": "Increment",
+    "login_with": "Login with {connector}",
+    "global_counter_value": "Global counter value",
+    "personal_counter_value": "Personal counter value",
+    "connected_with": "Connected {address} with {connector}",
+    "balance": "Balance: {balance}",
+    "disconnect": "Log out",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up"
+  },
+  "Languages": {
+    "EN": "English",
+    "PL": "Polish"
+  },
+  "Errors": {
+    "cannot_increment": "Unable to increment the counter.",
+    "CounterV2__ZeroIncrement": "Cannot increment by zero. Change the increment amount.",
+    "TX_REJECTED_BY_USER": "Transaction rejected by user",
+    "FAILED_TO_SWITCH_TO_REQUIRED_NETWORK": "Failed to switch to required network",
+    "INSUFFICIENT_FUNDS": "Insufficient funds",
+    "CONTRACT_EXECUTION_FAILED": "Contract execution failed",
+    "CONTRACT_FUNCTION_REVERTED": "Contract function reverted",
+    "TX_REJECTED_BY_NETWORK": "Transaction rejected by network",
+    "TRANSACTION_CONFIRMATION_TIMED_OUT": "Transaction confirmation timed out",
+    "RPC_REQUEST_FAILED": "RPC request failed",
+    "UNKNOWN_ERROR": "Unknown error"
+  },
+  "ErrorPage": {
+    "something_went_wrong": "Oops! Something went wrong!",
+    "description": "An unexpected error has occurred. The error was sent to the developer, but you can also copy and share this error code:",
+    "reload": "Reload page"
+  },
+  "Auth": {
+    "login_with_google": "Login with Google",
+    "signup_title": "Sign up",
+    "email": "Email",
+    "email_placeholder": "m@example.com",
+    "password": "Password",
+    "repeat_password": "Repeat password",
+    "signup_description": "Create an account to get started",
+    "login_title": "Login",
+    "login_description": "Login to your account to continue",
+    "already_have_account": "Already have an account?",
+    "login": "Login",
+    "dont_have_account": "Don't have an account?",
+    "signup": "Sign up",
+    "loading": "Loading...",
+    "disconnect": "Disconnect"
+  }
+}

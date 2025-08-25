@@ -1,0 +1,73 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "fundset-evm-counter-module",
+  "type": "registry:item",
+  "title": "fundset-evm-counter-module",
+  "description": "fundset-evm-counter-module",
+  "registryDependencies": [
+    "https://fundset.vercel.app/r/fundset-evm-settlement-layer.json",
+    "https://fundset.vercel.app/r/counter-module-definition.json"
+  ],
+  "files": [
+    {
+      "path": "../web/src/_fundset/settlement-layer/evm/modules/counter/index.ts",
+      "content": "import { Config } from 'wagmi';\nimport { waitForTransactionReceipt, writeContract } from 'wagmi/actions';\nimport {\n  readContractQueryKey,\n  readContractQueryOptions,\n  writeContractMutationOptions,\n} from 'wagmi/query';\n\nimport CounterAbiV1 from '@fundset/contracts/abi/Counter/CounterV1.sol/CounterV1';\nimport CounterAbiV2 from '@fundset/contracts/abi/Counter/CounterV2.sol/CounterV2';\nimport { EvmModule } from '../../config.type';\nimport { Account, Chain, Transport, WalletClient } from 'viem';\nimport { CounterModule } from '@/_fundset/settlement-layer/modules/counter';\n\nexport const buildCounterModule = ({\n  evmModule,\n  chain,\n  walletClient,\n  config,\n}: {\n  evmModule: EvmModule;\n  chain: Chain;\n  walletClient: WalletClient<Transport, Chain, Account> | undefined;\n  config: Config;\n}) => {\n  return {\n    globalCounterValueQueryOptions: {\n      ...readContractQueryOptions(config, {\n        address: evmModule.proxyAddress as `0x${string}`,\n        abi: CounterAbiV1,\n        functionName: 'x',\n        chainId: chain.id,\n      }),\n      select: data => Number(data),\n    },\n    isIncrementGlobalCounterReady: !!walletClient,\n    incrementGlobalCounterMutationOptions: {\n      ...writeContractMutationOptions(config),\n      mutationFn: walletClient\n        ? async (amount: number) => {\n            const hash = await writeContract(config, {\n              chain,\n              account: walletClient.account,\n              abi: CounterAbiV2,\n              address: evmModule.proxyAddress as `0x${string}`,\n              functionName: 'incBy',\n              args: [BigInt(amount)],\n            });\n\n            if (!hash) return;\n\n            await waitForTransactionReceipt(config, {\n              hash,\n            });\n          }\n        : undefined,\n      meta: {\n        invalidatesQuery: readContractQueryKey({\n          address: evmModule.proxyAddress as `0x${string}`,\n          functionName: 'x',\n          chainId: chain.id,\n        }),\n      },\n    },\n\n    personalCounterValueQueryOptions: {\n      ...readContractQueryOptions(config, {\n        address: evmModule.proxyAddress as `0x${string}`,\n        abi: CounterAbiV2,\n        functionName: 'xByAddress',\n        chainId: chain.id,\n        args: [walletClient?.account?.address as `0x${string}`],\n      }),\n      select: data => Number(data),\n    },\n    isIncrementPersonalCounterReady: !!walletClient,\n    incrementPersonalCounterMutationOptions: {\n      ...writeContractMutationOptions(config),\n      mutationFn: walletClient\n        ? async (amount: number) => {\n            const hash = await writeContract(config, {\n              chain,\n              account: walletClient.account,\n              abi: CounterAbiV2,\n              address: evmModule.proxyAddress as `0x${string}`,\n              functionName: 'incByAddress',\n              args: [BigInt(amount)],\n            });\n\n            if (!hash) return;\n\n            await waitForTransactionReceipt(config, {\n              hash,\n            });\n          }\n        : undefined,\n      meta: {\n        invalidatesQuery: readContractQueryKey({\n          address: evmModule.proxyAddress as `0x${string}`,\n          functionName: 'xByAddress',\n          chainId: chain.id,\n        }),\n      },\n    },\n  } satisfies CounterModule;\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/evm/modules/counter/index.ts"
+    },
+    {
+      "path": "../evm/contracts/contracts/Counter/CounterLib.sol",
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\nlibrary CounterLib {\n  bytes32 public constant CounterStorageLocation =\n    keccak256(abi.encode(uint256(keccak256('fundset.counter.storage')) - 1)) ^\n      bytes32(uint256(0xff));\n\n  struct CounterStorage {\n    uint value;\n    mapping(address => uint) valueByAddress;\n  }\n\n  function getStorage() internal pure returns (CounterStorage storage s) {\n    bytes32 position = CounterStorageLocation;\n    assembly {\n      s.slot := position\n    }\n  }\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/contracts/Counter/CounterLib.sol"
+    },
+    {
+      "path": "../evm/contracts/contracts/Counter/CounterV1.sol",
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\nimport { CounterLib } from './CounterLib.sol';\n\ncontract CounterV1 {\n  event Increment(uint256 newValue);\n\n  function x() public view returns (uint) {\n    return CounterLib.getStorage().value;\n  }\n\n  function inc() public {\n    CounterLib.getStorage().value++;\n    emit Increment(CounterLib.getStorage().value);\n  }\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/contracts/Counter/CounterV1.sol"
+    },
+    {
+      "path": "../evm/contracts/contracts/Counter/CounterV2.sol",
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\nimport { CounterLib } from './CounterLib.sol';\n\ncontract CounterV2 {\n  event IncrementBy(uint256 newValue, uint256 by);\n  error CounterV2__ZeroIncrement();\n\n  function incBy(uint by) public {\n    if (by == 0) {\n      revert CounterV2__ZeroIncrement();\n    }\n    CounterLib.getStorage().value += by;\n    emit IncrementBy(CounterLib.getStorage().value, by);\n  }\n\n  function xByAddress(address addr) public view returns (uint) {\n    return CounterLib.getStorage().valueByAddress[addr];\n  }\n\n  function incByAddress(uint by) public {\n    CounterLib.getStorage().valueByAddress[msg.sender] += by;\n    emit IncrementBy(CounterLib.getStorage().valueByAddress[msg.sender], by);\n  }\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/contracts/Counter/CounterV2.sol"
+    },
+    {
+      "path": "../evm/contracts/contracts/Counter/Counter.t.sol",
+      "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.28;\n\nimport { DiamondProxy } from '../DiamondProxy.sol';\nimport { IERC2535DiamondCutInternal } from '@solidstate/contracts/interfaces/IERC2535DiamondCut.sol';\nimport { CounterV1 } from './CounterV1.sol';\nimport { CounterV2 } from './CounterV2.sol';\nimport { Test } from 'forge-std/Test.sol';\n\n// Solidity tests are compatible with foundry, so they\n// use the same syntax and offer the same functionality.\n\ncontract CounterV2Test is Test {\n  DiamondProxy diamondProxy;\n  CounterV1 counterV1;\n  CounterV2 counterV2;\n\n  function setUp() public {\n    diamondProxy = new DiamondProxy();\n\n    counterV1 = new CounterV1();\n    counterV2 = new CounterV2();\n\n    IERC2535DiamondCutInternal.FacetCut[]\n      memory facetCuts = new IERC2535DiamondCutInternal.FacetCut[](2);\n\n    bytes4[] memory selectorsV1 = new bytes4[](2);\n    selectorsV1[0] = bytes4(keccak256('inc()'));\n    selectorsV1[1] = bytes4(keccak256('x()'));\n\n    bytes4[] memory selectorsV2 = new bytes4[](1);\n    selectorsV2[0] = bytes4(keccak256('incBy(uint256)'));\n\n    facetCuts[0] = IERC2535DiamondCutInternal.FacetCut({\n      action: IERC2535DiamondCutInternal.FacetCutAction.ADD,\n      target: address(counterV1),\n      selectors: selectorsV1\n    });\n    facetCuts[1] = IERC2535DiamondCutInternal.FacetCut({\n      action: IERC2535DiamondCutInternal.FacetCutAction.ADD,\n      target: address(counterV2),\n      selectors: selectorsV2\n    });\n\n    diamondProxy.diamondCut(facetCuts, address(0), bytes(''));\n  }\n\n  function test_InitialValue() public view {\n    CounterV1 counter = CounterV1(address(diamondProxy));\n    require(counter.x() == 0, 'Initial value should be 0');\n  }\n\n  function testFuzz_Inc(uint8 x) public {\n    CounterV1 counter = CounterV1(address(diamondProxy));\n    for (uint8 i = 0; i < x; i++) {\n      counter.inc();\n    }\n    require(counter.x() == x, 'Value after calling inc x times should be x');\n  }\n\n  function test_IncByZero() public {\n    CounterV2 counter = CounterV2(address(diamondProxy));\n    vm.expectRevert(CounterV2.CounterV2__ZeroIncrement.selector);\n    counter.incBy(0);\n  }\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/contracts/Counter/Counter.t.sol"
+    },
+    {
+      "path": "../evm/contracts/contracts/Token/ERC20.sol",
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\nimport { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';\nimport { ERC20 as ERC20Base } from '@openzeppelin/contracts/token/ERC20/ERC20.sol';\n\ncontract ERC20 is Ownable, ERC20Base {\n  constructor(\n    string memory name,\n    string memory symbol\n  ) Ownable(msg.sender) ERC20Base(name, symbol) {}\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/contracts/Token/ERC20.sol"
+    },
+    {
+      "path": "../evm/contracts/ignition/modules/ERC20.ts",
+      "content": "import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';\n\nexport const ERC20Module = buildModule('ERC20Module', m => {\n  const erc20 = m.contract('ERC20', ['Test', 'TEST']);\n\n  return { erc20 };\n});\n\nexport default ERC20Module;\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/ignition/modules/ERC20.ts"
+    },
+    {
+      "path": "../evm/contracts/ignition/modules/CounterVersions.ts",
+      "content": "import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';\nimport DiamondProxyModule from './DiamondProxy.ts';\nimport { AbiFunction, toFunctionSelector, zeroAddress } from 'viem';\nimport { CounterV1 } from '../../abi/Counter/CounterV1.sol/index.ts';\nimport { CounterV2 } from '../../abi/Counter/CounterV2.sol/index.ts';\nimport { DIAMOND_ACTIONS } from '../../types/diamond-action.ts';\n\nexport const CounterVersionsModule = buildModule('CounterVersionsModule', m => {\n  const { diamondProxy } = m.useModule(DiamondProxyModule);\n  const counterV1 = m.contract('CounterV1');\n  const counterV2 = m.contract('CounterV2', [], {\n    after: [counterV1],\n  });\n\n  const selectorsV1 = CounterV1.filter(abi => abi.type === 'function').map(abi =>\n    toFunctionSelector(abi as AbiFunction),\n  );\n\n  const selectorsV2 = CounterV2.filter(abi => abi.type === 'function').map(abi =>\n    toFunctionSelector(abi as AbiFunction),\n  );\n\n  const firstAttach = m.call(\n    diamondProxy,\n    'diamondCut',\n    [\n      [{ action: DIAMOND_ACTIONS.ADD, target: counterV1, selectors: selectorsV1 }],\n      zeroAddress,\n      '0x',\n    ],\n    {\n      id: 'attach_counter_v1',\n    },\n  );\n\n  m.call(\n    diamondProxy,\n    'diamondCut',\n    [\n      [{ action: DIAMOND_ACTIONS.ADD, target: counterV2, selectors: selectorsV2 }],\n      zeroAddress,\n      '0x',\n    ],\n    {\n      id: 'attach_counter_v2',\n      after: [firstAttach],\n    },\n  );\n\n  return { counterV1, counterV2 };\n});\n\nexport default CounterVersionsModule;\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/contracts/ignition/modules/CounterVersions.ts"
+    },
+    {
+      "path": "../evm/indexer/src/modules/Counter.ts",
+      "content": "import { Counter_Increment, Counter_IncrementBy, DiamondProxy } from 'generated';\n\nDiamondProxy.Increment.handler(async ({ event, context }) => {\n  const entity: Counter_Increment = {\n    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,\n    by: event.params._0,\n  };\n  context.Counter_Increment.set(entity);\n});\n\nDiamondProxy.IncrementBy.handler(async ({ event, context }) => {\n  const entity: Counter_IncrementBy = {\n    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,\n    amount: event.params._0,\n    by: event.params._1,\n  };\n  context.Counter_IncrementBy.set(entity);\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/indexer/src/modules/Counter.ts"
+    },
+    {
+      "path": "../evm/indexer/src/modules/ERC20Token.ts",
+      "content": "import { ERC20, ERC20_OwnershipTransferred, ERC20_Transfer } from 'generated';\n\nERC20.Transfer.handler(async ({ event, context }) => {\n  const entity: ERC20_Transfer = {\n    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,\n    from: event.params._0,\n    to: event.params._1,\n    value: event.params._2,\n  };\n  context.ERC20_Transfer.set(entity);\n});\n\nERC20.OwnershipTransferred.handler(async ({ event, context }) => {\n  const entity: ERC20_OwnershipTransferred = {\n    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,\n    newOwner: event.params._0,\n    previousOwner: event.params._1,\n  };\n  context.ERC20_OwnershipTransferred.set(entity);\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/evm/indexer/src/modules/ERC20Token.ts"
+    }
+  ]
+}

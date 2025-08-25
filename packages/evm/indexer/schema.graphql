@@ -1,0 +1,38 @@
+type Counter_Increment {
+  id: ID!
+  by: BigInt!
+}
+
+type Counter_IncrementBy {
+  id: ID!
+  by: BigInt!
+  amount: BigInt!
+}
+
+type DiamondProxy_DiamondCut {
+  id: ID!
+  facetAddress: String!
+  diamondAction: BigInt!
+  functionSelectors: [String!]!
+  init: String
+  calldata: String
+}
+
+type DiamondProxy_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type ERC20_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type ERC20_Transfer {
+  id: ID!
+  from: String!
+  to: String!
+  value: BigInt!
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "fundset-core",
+  "type": "registry:item",
+  "title": "fundset-core",
+  "description": "fundset-core",
+  "files": [
+    {
+      "path": "../web/src/_fundset/config/getSettlementLayerConfig.ts",
+      "content": "import { cache } from 'react';\nimport payloadConfig from '@/payload.config';\nimport { getPayload } from 'payload';\n\nexport const getSettlementLayerConfig = cache(async () => {\n  const payload = await getPayload({\n    config: payloadConfig,\n  });\n  const [theme, { settlementLayer: settlementLayerConfigs }] = await Promise.all([\n    payload.findGlobal({\n      slug: 'theme',\n    }),\n    payload.findGlobal({\n      slug: 'fundset-settlement-layer',\n    }),\n  ]);\n\n  const settlementLayerConfig = settlementLayerConfigs?.at(0);\n\n  if (!settlementLayerConfig) {\n    throw new Error(\n      'Settlement layer not found. Please add a settlement layer in CMS via /admin page.',\n    );\n  }\n\n  return {\n    theme,\n    settlementLayerConfig,\n    settlementLayerConfigs: settlementLayerConfigs ?? [],\n  };\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/config/getSettlementLayerConfig.ts"
+    },
+    {
+      "path": "../web/src/_fundset/base-plugin/seed.ts",
+      "content": "import { BasePayload } from 'payload';\n\nexport const seed = async (payload: BasePayload) => {\n  await payload.updateGlobal({\n    slug: 'theme',\n    data: {\n      editor: true,\n    },\n  });\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/base-plugin/seed.ts"
+    },
+    {
+      "path": "../web/src/_fundset/base-plugin/index.ts",
+      "content": "import type { Config } from 'payload';\nimport { FundsetSettlementLayer } from './globals/FundsetSettlementLayer';\nimport { Theme } from './globals/Theme';\nimport { seed } from './seed';\n\nexport const fundsetBasePlugin =\n  () =>\n  (config: Config): Config => {\n    config.globals ??= [];\n\n    config.globals.push(FundsetSettlementLayer);\n    config.globals.push(Theme);\n\n    const defaultOnInit = config.onInit;\n\n    config.onInit = async payload => {\n      await defaultOnInit?.(payload);\n\n      if (process.env.NODE_ENV === 'development') {\n        await seed(payload);\n      }\n    };\n\n    return config;\n  };\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/base-plugin/index.ts"
+    },
+    {
+      "path": "../web/src/_fundset/base-plugin/globals/FundsetSettlementLayer.ts",
+      "content": "import type { GlobalConfig } from 'payload';\n\nexport const FundsetSettlementLayer: GlobalConfig = {\n  slug: 'fundset-settlement-layer',\n  fields: [\n    {\n      name: 'settlementLayer',\n      type: 'blocks',\n      blocks: [],\n    },\n  ],\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/base-plugin/globals/FundsetSettlementLayer.ts"
+    },
+    {
+      "path": "../web/src/_fundset/base-plugin/globals/Theme.ts",
+      "content": "import type { GlobalConfig } from 'payload';\n\nexport const Theme: GlobalConfig = {\n  slug: 'theme',\n  fields: [\n    {\n      name: 'theme',\n      type: 'textarea',\n      defaultValue: '',\n    },\n    {\n      name: 'editor',\n      type: 'checkbox',\n      required: true,\n      defaultValue: false,\n    },\n  ],\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/base-plugin/globals/Theme.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/settlement-layer.d.ts",
+      "content": "declare module 'fundset/settlement-layer' {\n  export interface SettlementLayer {\n    name: string;\n  }\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/settlement-layer.d.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/index.ts",
+      "content": "'use client';\n\nimport { createContext, useContext } from 'react';\nimport type { SettlementLayer } from 'fundset/settlement-layer';\nimport { SettlementLayerConfig } from './provider/config.type';\n\nexport type SettlementLayerName = SettlementLayerConfig['type'];\n\nexport const SettlementLayerContext = createContext<SettlementLayerName[]>([]);\n\nexport const useSettlementLayer = (name?: string) => {\n  /**\n   * THIS IS A HACKY WAY OF SYNCHRONOUSLY AND DYNAMICALLY IMPORT THE SETTLEMENT LAYER IMPLEMENTATION\n   *\n   * It's a workaround to avoid having explicit imports for each settlement layer implementation.\n   * Now, when you switch the SL in admin panel, this will use the first one from the list.\n   */\n\n  const context = useContext(SettlementLayerContext);\n  if (!context.length) {\n    throw new Error('useSettlementLayer must be used within a SettlementLayerProvider');\n  }\n  const defaultName = context.at(0)!;\n\n  // eslint-disable-next-line @typescript-eslint/no-require-imports\n  const useSL = require(\n    `@/_fundset/settlement-layer/${name ?? defaultName}/useSettlementLayerImplementation`,\n  );\n\n  return useSL.default() as SettlementLayer;\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/index.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/provider/index.tsx",
+      "content": "import { ClientSideSettlementLayerProvider } from './client';\nimport { SettlementLayerConfig } from './config.type';\n\nexport { useSettlementLayer } from '..';\n\nexport const SettlementLayerProvider = async ({\n  children,\n  configs,\n}: React.PropsWithChildren<{\n  configs: SettlementLayerConfig[];\n}>) => {\n  const ProviderComponentsWithConfigs = await Promise.all(\n    configs.map(async config => {\n      const { default: ParticularSettlementLayerProvider } = await import(\n        `../${config.type}/index.tsx`\n      );\n      if (!ParticularSettlementLayerProvider) {\n        throw new Error(`Unsupported settlement layer type: ${config.type}`);\n      }\n      return {\n        ParticularSettlementLayerProvider:\n          ParticularSettlementLayerProvider as React.ComponentType<{\n            config: SettlementLayerConfig;\n            children: React.ReactNode;\n          }>,\n        config,\n      };\n    }),\n  );\n\n  const SettlementLayerProviders = ProviderComponentsWithConfigs.toReversed().reduce(\n    (accP, { ParticularSettlementLayerProvider, config }) => {\n      // eslint-disable-next-line react/display-name\n      return ({ children }: { children: React.ReactNode }) => (\n        <ParticularSettlementLayerProvider key={config.type} config={config}>\n          {accP({ children })}\n        </ParticularSettlementLayerProvider>\n      );\n    },\n    ({ children }: { children: React.ReactNode }) => children,\n  );\n\n  return (\n    <SettlementLayerProviders>\n      <ClientSideSettlementLayerProvider settlementLayerNames={configs.map(config => config.type)}>\n        {children}\n      </ClientSideSettlementLayerProvider>\n    </SettlementLayerProviders>\n  );\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/provider/index.tsx"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/provider/client.tsx",
+      "content": "'use client';\n\nimport { SettlementLayerContext, SettlementLayerName } from '..';\n\nexport const ClientSideSettlementLayerProvider = ({\n  children,\n  settlementLayerNames,\n}: React.PropsWithChildren<{\n  settlementLayerNames: SettlementLayerName[];\n}>) => {\n  return (\n    <SettlementLayerContext.Provider value={settlementLayerNames}>\n      {children}\n    </SettlementLayerContext.Provider>\n  );\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/provider/client.tsx"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/provider/config.type.ts",
+      "content": "import { FundsetSettlementLayer } from '@/payload-types';\n\nexport type SettlementLayerConfig = NonNullable<FundsetSettlementLayer['settlementLayer']>[number];\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/provider/config.type.ts"
+    }
+  ]
+}

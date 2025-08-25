@@ -1,0 +1,453 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "fundset",
+  "homepage": "https://fundset.com",
+  "items": [
+    {
+      "name": "fundset-core",
+      "type": "registry:item",
+      "title": "fundset-core",
+      "description": "fundset-core",
+      "files": [
+        {
+          "name": "getSettlementLayerConfig",
+          "path": "../web/src/_fundset/config/getSettlementLayerConfig.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/config/getSettlementLayerConfig.ts"
+        },
+        {
+          "name": "seed",
+          "path": "../web/src/_fundset/base-plugin/seed.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/base-plugin/seed.ts"
+        },
+        {
+          "name": "index",
+          "path": "../web/src/_fundset/base-plugin/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/base-plugin/index.ts"
+        },
+        {
+          "name": "FundsetSettlementLayer",
+          "path": "../web/src/_fundset/base-plugin/globals/FundsetSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/base-plugin/globals/FundsetSettlementLayer.ts"
+        },
+        {
+          "name": "Theme",
+          "path": "../web/src/_fundset/base-plugin/globals/Theme.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/base-plugin/globals/Theme.ts"
+        },
+        {
+          "name": "settlement-layer.d.ts",
+          "path": "../web/src/_fundset/settlement-layer/settlement-layer.d.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/settlement-layer.d.ts"
+        },
+        {
+          "name": "index",
+          "path": "../web/src/_fundset/settlement-layer/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/index.ts"
+        },
+        {
+          "name": "provider",
+          "path": "../web/src/_fundset/settlement-layer/provider/index.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/provider/index.tsx"
+        },
+        {
+          "name": "client-provider",
+          "path": "../web/src/_fundset/settlement-layer/provider/client.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/provider/client.tsx"
+        },
+        {
+          "name": "config.type.ts",
+          "path": "../web/src/_fundset/settlement-layer/provider/config.type.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/provider/config.type.ts"
+        }
+      ]
+    },
+    {
+      "name": "fundset-pg-settlement-layer",
+      "type": "registry:item",
+      "title": "fundset-pg-settlement-layer",
+      "description": "fundset-pg-settlement-layer",
+      "registryDependencies": ["https://fundset.vercel.app/r/fundset-core.json"],
+      "meta": {
+        "dependencies": {
+          "web": [
+            "drizzle-orm",
+            "@orpc/server",
+            "@orpc/client",
+            "@orpc/tanstack-query",
+            "pg",
+            "zod",
+            "@t3-oss/env-nextjs",
+            "dotenv"
+          ]
+        },
+        "devDependencies": {
+          "web": ["drizzle-kit"]
+        }
+      },
+      "files": [
+        {
+          "name": "index",
+          "path": "../web/src/_fundset/settlement-layer/pg/index.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/index.tsx"
+        },
+        {
+          "name": "use-settlement-layer-implementation",
+          "path": "../web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+        },
+        {
+          "name": "db-schema",
+          "path": "../web/src/_fundset/settlement-layer/pg/db-schema.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/db-schema.ts"
+        },
+        {
+          "name": "auth-schema",
+          "path": "../web/src/_fundset/settlement-layer/pg/auth-schema.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/auth-schema.ts"
+        },
+        {
+          "name": "drizzle.config",
+          "path": "../web/drizzle.config.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/drizzle.config.ts"
+        },
+        {
+          "name": "plugin-index",
+          "path": "../web/src/_fundset/settlement-layer/pg/plugin/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/index.ts"
+        },
+        {
+          "name": "plugin-env",
+          "path": "../web/src/_fundset/settlement-layer/pg/plugin/env.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/env.ts"
+        },
+        {
+          "name": "plugin-blocks-PostgresSettlementLayer",
+          "path": "../web/src/_fundset/settlement-layer/pg/plugin/blocks/PostgresSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/blocks/PostgresSettlementLayer.ts"
+        },
+        {
+          "name": "orpc-client",
+          "path": "../web/src/_fundset/settlement-layer/pg/orpc/client.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/client.ts"
+        },
+        {
+          "name": "orpc-router",
+          "path": "../web/src/_fundset/settlement-layer/pg/orpc/router.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/router.ts"
+        },
+        {
+          "name": "orpc-common",
+          "path": "../web/src/_fundset/settlement-layer/pg/orpc/common.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/common.ts"
+        },
+        {
+          "name": "orpc-api-route",
+          "path": "../web/src/app/(app)/api/rpc/[[...all]]/route.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/app/(app)/api/rpc/[[...all]]/route.ts"
+        },
+        {
+          "name": "lib-auth",
+          "path": "../web/src/lib/auth.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/lib/auth.ts"
+        },
+        {
+          "name": "lib-auth-client",
+          "path": "../web/src/lib/auth-client.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/lib/auth-client.ts"
+        },
+        {
+          "name": "auth-pg",
+          "path": "../web/src/features/auth/pg/index.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/pg/index.tsx"
+        },
+        {
+          "name": "auth-api",
+          "path": "../web/src/app/(app)/api/auth/[...all]/route.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/app/(app)/api/auth/[...all]/route.ts"
+        }
+      ]
+    },
+    {
+      "name": "fundset-evm-settlement-layer",
+      "type": "registry:item",
+      "title": "fundset-evm-settlement-layer",
+      "description": "fundset-evm-settlement-layer",
+      "registryDependencies": ["https://fundset.vercel.app/r/fundset-core.json"],
+      "meta": {
+        "dependencies": {
+          "web": [
+            "zod",
+            "@t3-oss/env-nextjs",
+            "wagmi",
+            "viem",
+            "@web3auth/auth-adapter",
+            "@web3auth/base",
+            "@web3auth/no-modal",
+            "@web3auth/ethereum-provider",
+            "permissionless",
+            "@web3auth/web3auth-wagmi-connector",
+            "@uidotdev/usehooks"
+          ]
+        }
+      },
+      "files": [
+        {
+          "name": "diamond-proxy-contract",
+          "path": "../evm/contracts/contracts/DiamondProxy.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/DiamondProxy.sol"
+        },
+        {
+          "name": "diamond-proxy-ignition",
+          "path": "../evm/contracts/ignition/modules/DiamondProxy.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/ignition/modules/DiamondProxy.ts"
+        },
+        {
+          "name": "diamond-proxy-test",
+          "path": "../evm/contracts/test/DiamondProxy.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/test/DiamondProxy.ts"
+        },
+        {
+          "name": "index",
+          "path": "../web/src/_fundset/settlement-layer/evm/index.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/index.tsx"
+        },
+        {
+          "name": "use-settlement-layer-implementation",
+          "path": "../web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts"
+        },
+        {
+          "name": "env",
+          "path": "../web/src/_fundset/settlement-layer/evm/env.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/env.ts"
+        },
+        {
+          "name": "config.type",
+          "path": "../web/src/_fundset/settlement-layer/evm/config.type.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/config.type.ts"
+        },
+        {
+          "name": "plugin-index",
+          "path": "../web/src/_fundset/settlement-layer/evm/plugin/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/plugin/index.ts"
+        },
+        {
+          "name": "plugin-seed",
+          "path": "../web/src/_fundset/settlement-layer/evm/plugin/seed.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/plugin/seed.ts"
+        },
+        {
+          "name": "plugin-evm-settlement-layer-block",
+          "path": "../web/src/_fundset/settlement-layer/evm/plugin/blocks/EvmSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/plugin/blocks/EvmSettlementLayer.ts"
+        },
+        {
+          "name": "errors",
+          "path": "../web/src/_fundset/settlement-layer/evm/errors/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/errors/index.ts"
+        },
+        {
+          "name": "error-codes",
+          "path": "../web/src/_fundset/settlement-layer/evm/errors/errorCodes.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/errors/errorCodes.ts"
+        },
+        {
+          "name": "error-decode-mutation-error",
+          "path": "../web/src/_fundset/settlement-layer/evm/errors/decodeMutationError.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/errors/decodeMutationError.ts"
+        },
+        {
+          "name": "connectors-web3auth",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/index.ts"
+        },
+        {
+          "name": "connectors-web3auth-create",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/create.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/create.ts"
+        },
+        {
+          "name": "connectors-web3auth-base",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/base.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/base.ts"
+        },
+        {
+          "name": "connectors-web3auth-providers",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/providers/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/providers/index.ts"
+        },
+        {
+          "name": "auth-evm",
+          "path": "../web/src/features/auth/evm/index.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/index.tsx"
+        },
+        {
+          "name": "auth-evm-use-web3-auth-reconnect",
+          "path": "../web/src/features/auth/evm/useReconnectWeb3Auth.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/useReconnectWeb3Auth.ts"
+        },
+        {
+          "name": "indexer-event-handlers",
+          "path": "../evm/indexer/src/EventHandlers.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/indexer/src/EventHandlers.ts"
+        }
+      ]
+    },
+    {
+      "name": "counter-module-definition",
+      "type": "registry:item",
+      "title": "counter-module-definition",
+      "description": "counter-module-definition",
+      "files": [
+        {
+          "name": "counter-module-definition-dts",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter.d.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter.d.ts"
+        }
+      ]
+    },
+    {
+      "name": "fundset-evm-counter-module",
+      "type": "registry:item",
+      "title": "fundset-evm-counter-module",
+      "description": "fundset-evm-counter-module",
+      "registryDependencies": [
+        "https://fundset.vercel.app/r/fundset-evm-settlement-layer.json",
+        "https://fundset.vercel.app/r/counter-module-definition.json"
+      ],
+      "files": [
+        {
+          "name": "counter-module-logic",
+          "path": "../web/src/_fundset/settlement-layer/evm/modules/counter/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/modules/counter/index.ts"
+        },
+        {
+          "name": "counter-module-contracts-counter-lib",
+          "path": "../evm/contracts/contracts/Counter/CounterLib.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/Counter/CounterLib.sol"
+        },
+        {
+          "name": "counter-module-contracts-counter-v1",
+          "path": "../evm/contracts/contracts/Counter/CounterV1.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/Counter/CounterV1.sol"
+        },
+        {
+          "name": "counter-module-contracts-counter-v2",
+          "path": "../evm/contracts/contracts/Counter/CounterV2.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/Counter/CounterV2.sol"
+        },
+        {
+          "name": "counter-module-contracts-test",
+          "path": "../evm/contracts/contracts/Counter/Counter.t.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/Counter/Counter.t.sol"
+        },
+        {
+          "name": "token-module-contracts-erc20",
+          "path": "../evm/contracts/contracts/Token/ERC20.sol",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/contracts/Token/ERC20.sol"
+        },
+        {
+          "name": "token-module-ignition",
+          "path": "../evm/contracts/ignition/modules/ERC20.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/ignition/modules/ERC20.ts"
+        },
+        {
+          "name": "counter-module-ignition",
+          "path": "../evm/contracts/ignition/modules/CounterVersions.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/contracts/ignition/modules/CounterVersions.ts"
+        },
+        {
+          "name": "counter-module-indexer",
+          "path": "../evm/indexer/src/modules/Counter.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/indexer/src/modules/Counter.ts"
+        },
+        {
+          "name": "token-module-indexer",
+          "path": "../evm/indexer/src/modules/ERC20Token.ts",
+          "type": "registry:file",
+          "target": "~/packages/evm/indexer/src/modules/ERC20Token.ts"
+        }
+      ]
+    },
+    {
+      "name": "fundset-pg-counter-module",
+      "type": "registry:item",
+      "title": "fundset-pg-counter-module",
+      "description": "fundset-pg-counter-module",
+      "registryDependencies": [
+        "https://fundset.vercel.app/r/fundset-pg-settlement-layer.json",
+        "https://fundset.vercel.app/r/counter-module-definition.json"
+      ],
+      "files": [
+        {
+          "name": "counter-module-rpc",
+          "path": "../web/src/_fundset/settlement-layer/pg/modules/counter/orpc.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/modules/counter/orpc.ts"
+        },
+        {
+          "name": "counter-module-implementation",
+          "path": "../web/src/_fundset/settlement-layer/pg/modules/counter/index.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/modules/counter/index.ts"
+        }
+      ]
+    }
+  ]
+}

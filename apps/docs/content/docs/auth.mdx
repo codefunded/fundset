@@ -1,0 +1,75 @@
+---
+title: Auth
+description: How to distinguish between users
+---
+
+Fundset works with any auth provider, you just have to bring it yourself.
+
+Each settlement layer can have different auth solutions that make sense for it.
+For example, for EVM settlement layer, you'll probably want to use a wallet connection as your auth or use a cloud based wallet provider like Web3Auth, while for postgres you'll likely want to use some other auth solution like Better-Auth, Auth.js, Clerk, Kinde, WorkOs etc.
+
+Our template comes with Better-Auth initialised but **it is not required to use it**. You can ditch all the files related to Better-Auth and roll your own auth solution.
+
+## How to use auth in your application
+
+Each module will likely need to have a way to distinguish between users. You want to check out the `_fundset/settlement-layer/<SL-name>/useSettlementLayerImplementation.ts` file to see how modules are injected into the settlement layer object:
+
+```ts title="_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+import { SettlementLayer } from 'fundset/settlement-layer';
+import { useMemo } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { buildCounterModule } from './modules/counter';
+
+export const usePgSettlementLayer = () => {
+  const { data: session } = authClient.useSession(); // [!code highlight]
+  const pgSettlementLayer: SettlementLayer = useMemo(() => {
+    return {
+      name: 'pg',
+      ...buildCounterModule({ session }), // [!code highlight]
+    };
+  }, [session]); // [!code highlight]
+  return pgSettlementLayer;
+};
+
+export default usePgSettlementLayer;
+```
+
+Postgres settlement layer template uses the `useSession` hook from Better-Auth to get the user and injects that into the counter module code.
+
+There's nothing blocking you from calling other auth providers in the settlement layer builder hook and then passing the logged user data down into the modules.
+
+Check out the Postgres settlement layer implementation of the counter module to see how the user session is extracted from the request headers:
+
+```ts
+// Postgres settlement layer is using oRPC
+
+export const authenticatedMiddleware = os
+  .$context<{ headers: Headers }>()
+  .middleware(async ({ next, context }) => {
+    const session = await auth.api.getSession({
+      headers: context.headers, // [!code highlight] <--- Better-Auth API is used to get the session
+    });
+    if (session) {
+      return next({ context: { session } }); // [!code highlight] <--- session is injected into the context
+    }
+    throw new ORPCError('UNAUTHORIZED');
+  });
+
+export const incrementPersonalCounter = os
+  .$context<{ headers: Headers }>()
+  .use(authenticatedMiddleware)
+  .use(dbProvider)
+  .input(z.number())
+  .handler(async ({ input, context }) => {
+    const counter = await context.db
+      .insert(countersTable)
+      // user id is extracted from the session from request context
+      .values({ value: input, userId: context.session.user.id })
+      .onConflictDoUpdate({
+        target: [countersTable.userId],
+        set: { value: sql`${countersTable.value} + ${input}` },
+      })
+      .returning();
+    return counter[0].value;
+  });
+```

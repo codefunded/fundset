@@ -1,0 +1,229 @@
+---
+title: EVM
+---
+
+## Overview
+
+EVM settlement layer is a settlement layer that uses blockchain technology under the hood with the following curated tech stack for optimal performance:
+
+- **Ethereum Virtual Machine (EVM)** - blockchains compatible with Ethereum VM for smart contract execution
+- **Hardhat** - for smart contract development and deployment
+- **Viem** - for low-level blockchain interactions
+- **Wagmi** - for React hooks and wallet connection
+- **Web3Auth** - for enhanced user experience with Account Abstraction
+
+## Development
+
+### Smart Contracts
+
+EVM settlement layer uses Hardhat V3 for smart contract development. Your contracts are located in the `packages/evm/contracts` directory.
+
+<Callout title="Want to learn more?">
+  Checkout the [Hardhat docs](https://hardhat.org/docs) to see how to configure your development
+  environment.
+</Callout>
+
+Fundset is using a [Diamond Proxy pattern](https://github.com/mudgen/awesome-diamonds/blob/main/README.md) for the main smart contract with logic. This allows for easy and composable upgrades and extensions of the main contract - See [arguments for and against](https://chatgpt.com/share/68aaecc5-0b54-800e-a8b4-47397524f713) using Diamond Proxy pattern.
+Of course you can create separate contracts for each module if you need, e.g. an ERC20 token.
+
+### Context Provider
+
+`_fundset/settlement-layer/evm/index.tsx` file is a context provider component that wraps your app with Wagmi configuration and chain management:
+
+```ts title="_fundset/settlement-layer/evm/index.tsx"
+const EvmSettlementLayerProvider = ({
+  children,
+  ...props
+}: React.PropsWithChildren<{ config: EvmSettlementLayerConfig }>) => {
+  const wagmiConfig = useMemo(() => {
+    const configChains = props.config.chainConfigs.map(chain =>
+      Object.values(chains).find(c => c.id === chain.chainId),
+    );
+
+    const transports = props.config.chainConfigs.reduce(
+      (acc, chain) => ({
+        ...acc,
+        [chain.chainId]: viem.http(chain.rpcUrl, {
+          retryCount: 5,
+          retryDelay: 200,
+          batch: { wait: 100 },
+        }),
+      }),
+      {} as Record<number, viem.HttpTransport<undefined, false>>,
+    );
+
+    return createConfig({
+      chains: configChains as unknown as readonly [Chain, ...Chain[]],
+      transports,
+      ssr: true,
+      multiInjectedProviderDiscovery: true,
+      pollingInterval: 1000,
+    });
+  }, [props.config.chainConfigs]);
+
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <EvmChainConfigsProvider config={props.config.chainConfigs}>
+        {children}
+      </EvmChainConfigsProvider>
+    </WagmiProvider>
+  );
+};
+```
+
+### Modules
+
+`_fundset/settlement-layer/evm/modules` folder contains all the modules available for the EVM settlement layer. Each module provides blockchain interactions:
+
+Check out the docs on [how to build your own modules](/docs/how-to-implement-module)
+
+### Payload CMS Plugin
+
+`_fundset/settlement-layer/evm/plugin` folder contains the Payload CMS plugin files for managing EVM settlement layer configuration:
+
+Check out the [Payload docs](https://payloadcms.com/docs/plugins/overview) to learn more about plugins.
+
+### Account Abstracted Wallet Connectors
+
+`_fundset/settlement-layer/evm/connectors` folder contains [web3auth](https://web3auth.io/) wallet connection implementations:
+
+```ts title="_fundset/settlement-layer/evm/connectors/web3auth/index.ts"
+export { SESSION_TIME } from './base';
+export { LOGIN_PROVIDER, type LOGIN_PROVIDER_TYPE, MFA_LEVELS } from '@web3auth/auth-adapter';
+export * from './providers';
+```
+
+### Indexer
+
+Fundset uses [Envio HyperIndex](https://envio.dev/) for indexing blockchain events. It is availible under `packages/evm/indexer` folder.
+Each module might need to index events from the blockchain so in order to add a new module with indexing logic, you need to create a new file in `packages/evm/indexer/src/modules` folder and then, the `postinstall` script will automatically generate an import to your module's indexing logic.
+
+Envio indexer requires a yaml [config](https://docs.envio.dev/docs/HyperIndex/configuration-file) file to know which events on which contracts to index. By default, the dev deployment script generates a config with all the events on all the contracts that are returned from the deployment script.
+But you have to add the logic for indexing events in the `packages/evm/indexer/src/EventHandlers.ts` file by yourself. Check out the [Event Handlers docs](https://docs.envio.dev/docs/HyperIndex/event-handlers) to learn how to do it.
+
+## Deployment
+
+For EVM settlement layer to work, you need:
+
+1. **Smart Contracts Deployed** - Deploy your contracts to your target networks using Hardhat
+2. **RPC Endpoints** - Configure RPC URLs for each chain you want to support
+3. **Web3Auth Configuration for Account Abstraction** (Optional) - Set up Web3Auth for wallet authentication and configure bundler and paymaster (e.g. [Biconomy](https://www.biconomy.io/))
+
+### 1. Contract Deployment
+
+Fundset recomments using Hardhat Ignition for contract deployment.
+
+1. First configure your target chain in `hardhat.config.ts`:
+
+```ts title="hardhat.config.ts"
+const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxViemPlugin],
+  profiles: {
+    default: {
+      version: '0.8.28',
+      settings: {
+        viaIR: true,
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        },
+      },
+    },
+  },
+  networks: {
+    mainnet: {
+      type: 'http',
+      chainType: 'l1',
+      url: configVariable('MAINNET_RPC_URL'),
+      accounts: [configVariable('MAINNET_PRIVATE_KEY')],
+    },
+  },
+};
+```
+
+2. Set configuration variables in your [hardhat keystore](https://hardhat.org/docs/learn-more/configuration-variables).
+   In this example, we'll need MAINNET_RPC_URL and MAINNET_PRIVATE_KEY.
+
+3. Then check out the `deploy/production.ts` script and edit it to deploy your contracts if you added any.
+   Remember to edit a network name to match your target chain in the `network.connect` call.
+
+```ts title="deploy/production.ts"
+// ... imports
+
+export const deploy = async (networkConnection: NetworkConnection, deployer: Deployer) => {
+  const { ignition } = networkConnection;
+
+  const { diamondProxy } = await ignition.deploy(DiamondProxyModule, {
+    defaultSender: deployer.account.address,
+    displayUi: true,
+  });
+  const { counterV1, counterV2 } = await ignition.deploy(CounterVersionsModule, {
+    defaultSender: deployer.account.address,
+    displayUi: true,
+  });
+  const { erc20 } = await ignition.deploy(ERC20Module, {
+    defaultSender: deployer.account.address,
+    displayUi: true,
+  });
+
+  return {
+    DiamondProxy: {
+      contract: diamondProxy,
+      facets: {
+        CounterV1: counterV1,
+        CounterV2: counterV2,
+      },
+    },
+    ERC20: {
+      contract: erc20,
+    },
+  };
+};
+const isDirect =
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1] === path.resolve(import.meta.dirname, '../node_modules/hardhat/dist/src/cli.js');
+
+if (isDirect) {
+  const networkConnection = await network.connect({ network: 'mainnet' }); // [!Code highlight]
+  const [deployer] = await networkConnection.viem.getWalletClients();
+  deploy(networkConnection, deployer).catch(console.error);
+}
+```
+
+<Callout title="Return format">
+  We suggest following the return format of [ContractName] having `contract` property and optional
+  `facets` property so it can be properly parsed by the helper function that we use in development.
+</Callout>
+
+4. Then run `pnpm hardhat run deploy/production.ts` to actually deploy your contracts. Check out the [Hardhat Ignition deployments](https://hardhat.org/ignition/docs/guides/scripts) docs to learn more about how we use Hardhat Scripts with Ignition.
+
+5. Copy the addresses of deployed contracts, you'll add them in the payload CMS admin dashboard later.
+
+```bash title="Terminal (Example deployment output)"
+Deployed Addresses
+
+DiamondProxyModule#DiamondProxy - 0x6334d9772bb59c1d4f2B4e2fFbd8E1a010cB0295
+CounterVersionsModule#CounterV1 - 0x4FB376a84dDAcB75d2978679A969E76E437Bfa30
+CounterVersionsModule#CounterV2 - 0x5A065b9C476fe87308eE91Ac47f63bfBeeD618Fb
+ERC20Module#ERC20 - 0x3c403B2DACeDedcfa5cDdE20D2b464395F3edE18
+```
+
+### 2. Application deployment
+
+This is a step by step guide on how to deploy an app with the evm settlement layer to Vercel.
+
+1. Publish your fundset app's code to github
+2. Create a postgres database instance e.g. with Neon on Vercel
+3. set the database connection string in the `DATABASE_URI` environment variable in your .env file
+4. in the `packages/web` folder, create Payload migrations with `pnpm payload migrate:create`
+5. run Payload migrations with `pnpm payload migrate`
+6. Create a new Vercel project out of it and add the following environment variables to your Vercel project:
+   - `DATABASE_URI` - your postgres database connection string
+   - `PAYLOAD_SECRET` - a random string
+   - `NEXT_PUBLIC_WEB3AUTH_CLIENT_ID` - your web3auth client id (optional, needed for AA)
+   - `NEXT_PUBLIC_APP_URL` - URL of your fundset app (e.g. `https://<your-app-name>.vercel.app`)
+7. Deploy your Vercel project.
+8. Go to `/admin` page and create a new admin user and log in.
+9. In the admin dashboard, go to `Fundset Settlement Layer` Global and add a settlement layer config for EVM with RPC URLs for each supported chain and modules with contract addresses that you deployed before.
+
+Your app is now ready to use!

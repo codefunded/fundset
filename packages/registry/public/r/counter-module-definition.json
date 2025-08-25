@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "counter-module-definition",
+  "type": "registry:item",
+  "title": "counter-module-definition",
+  "description": "counter-module-definition",
+  "files": [
+    {
+      "path": "../web/src/_fundset/settlement-layer/modules/counter.d.ts",
+      "content": "import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';\n\n// eslint-disable-next-line @typescript-eslint/no-explicit-any\ntype AnyReturnValue = any;\n\nexport interface CounterModule {\n  isIncrementGlobalCounterReady: boolean;\n  incrementGlobalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;\n  globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;\n\n  isIncrementPersonalCounterReady: boolean;\n  incrementPersonalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;\n  personalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;\n}\n\ndeclare module 'fundset/settlement-layer' {\n  // eslint-disable-next-line @typescript-eslint/no-empty-object-type\n  export interface SettlementLayer extends CounterModule {}\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter.d.ts"
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+---
+title: How to implement a module
+description: Quick step by step guide on how to implement a module
+---
+
+In this example, we're gonna recreate a simple counter module for the Postgres settlement layer.
+
+## Step 1: Create a definition for database schema
+
+If your module needs to store some data in the database, you need to create definitions for database tables. For our example, we're gonna create two tables, one for global counter and the other for personal counters.
+
+```ts title="_fundset/settlement-layer/pg/db-schema.ts"
+import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';
+
+export const countersTable = pgTable('counters', {
+  userId: varchar({ length: 255 }).notNull().primaryKey(),
+  value: integer().notNull(),
+});
+
+export const globalCounterTable = pgTable('global_counter', {
+  value: integer().notNull().default(0),
+});
+```
+
+## Step 2: Create a declaration file
+
+Each module has to have a declaration file that contains the extension of the `SettlementLayer` interface.
+This part is settlement layer agnostic and is only defined once, even if you're gonna have different implementations for different settlement layers.
+Create a new file in the `_fundset/settlement-layer/modules` directory with the name of the module and the `.d.ts` extension:
+
+```ts title="_fundset/settlement-layer/modules/counter.d.ts"
+import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyReturnValue = any;
+
+export interface CounterModule {
+  isIncrementGlobalCounterReady: boolean;
+  incrementGlobalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
+  globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+
+  isIncrementPersonalCounterReady: boolean;
+  incrementPersonalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
+  personalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+}
+
+declare module 'fundset/settlement-layer' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  export interface SettlementLayer extends CounterModule {}
+}
+```
+
+## Step 3: Implement the module in your settlement layer
+
+Inside the folder of your settlement layer, there's a `modules` directory. We'll create a new directory called `counter` and two files, one for logic implementation with oRPC and the second one for assembling our new module.
+
+In orpc client, we have to implement the functions to get value and increment the counter. There are two types of counters: global and personal. Global counter is a counter that is shared by all users. Personal counter is a counter that is unique for each user.
+
+In order to implement the personal counter, we need to pass the user id to the function. We're gonna use the `authenticatedMiddleware` to get the user id from the session. In our case, we're using Better-auth but it can be any other auth provider.
+
+```ts title="_fundset/settlement-layer/pg/modules/counter/orpc.ts"
+import { os } from '@orpc/server';
+import { z } from 'zod';
+import { countersTable, globalCounterTable } from '../../db-schema';
+import { eq, sql } from 'drizzle-orm';
+import { authenticatedMiddleware, dbProvider } from '../../orpc/common';
+
+// Simple function to get the global counter value,
+// using drizzle ORM to extract the value from the database
+export const getGlobalCounter = os
+  .use(dbProvider)
+  .handler(async ({ context }) => {
+    const counter = await context.db.select().from(globalCounterTable).limit(1);
+    return counter[0]?.value ?? 0;
+  })
+  .callable();
+
+// Accepts a userId as an input, no need to authenticate,
+// the data is public.
+export const getPersonalCounter = os
+  .use(dbProvider)
+  .input(z.object({ userId: z.string().optional() }))
+  .handler(async ({ input, context }) => {
+    if (!input.userId) {
+      return 0;
+    }
+
+    const counter = await context.db
+      .select()
+      .from(countersTable)
+      .where(eq(countersTable.userId, input.userId));
+    return counter[0]?.value ?? 0;
+  })
+  .callable();
+
+export const incrementGlobalCounter = os
+  .use(dbProvider)
+  .input(z.number())
+  .handler(async ({ input, context }) => {
+    const counter = await context.db.select().from(globalCounterTable);
+    if (counter.length === 0) {
+      const counter = await context.db
+        .insert(globalCounterTable)
+        .values({ value: input })
+        .returning();
+      return counter[0].value;
+    }
+
+    const newCounter = await context.db
+      .update(globalCounterTable)
+      .set({ value: counter[0].value + input })
+      .returning();
+    return newCounter[0].value;
+  });
+
+// Accepts a userId as an input, needs to be authenticated.
+export const incrementPersonalCounter = os
+  .$context<{ headers: Headers }>()
+  .use(authenticatedMiddleware)
+  .use(dbProvider)
+  .input(z.number())
+  .handler(async ({ input, context }) => {
+    const counter = await context.db
+      .insert(countersTable)
+      .values({ value: input, userId: context.session.user.id })
+      .onConflictDoUpdate({
+        target: [countersTable.userId],
+        set: { value: sql`${countersTable.value} + ${input}` },
+      })
+      .returning();
+    return counter[0].value;
+  });
+
+export const counterModule = {
+  globalCounter: { get: getGlobalCounter, increment: incrementGlobalCounter },
+  personalCounter: { get: getPersonalCounter, increment: incrementPersonalCounter },
+};
+```
+
+Now we have to extend the oRPC router with our new functions:
+
+```ts title="_fundset/settlement-layer/pg/orpc/router.ts"
+import { counterModule } from './modules/counter/orpc';
+
+export const router = {
+  ...counterModule,
+};
+```
+
+Now we need to assemble the module. We're gonna use the `buildCounterModule` function to build the module.
+Normally, we'd have to construct mutation and query options for each function, but luckilly oRPC has `oRPCQueryUtils` helper to get the options:
+
+```ts title="_fundset/settlement-layer/pg/modules/counter/index.ts"
+import { CounterModule } from '@/_fundset/settlement-layer/modules/counter';
+import { oRPCQueryUtils } from '../../orpc/client';
+import { authClient } from '@/lib/auth-client';
+
+export const buildCounterModule = ({
+  session,
+}: {
+  session: ReturnType<typeof authClient.useSession>['data'];
+}): CounterModule => {
+  return {
+    isIncrementGlobalCounterReady: true,
+    incrementGlobalCounterMutationOptions: oRPCQueryUtils.globalCounter.increment.mutationOptions({
+      meta: {
+        invalidatesQuery: oRPCQueryUtils.globalCounter.get.queryOptions().queryKey,
+      },
+    }),
+    globalCounterValueQueryOptions: oRPCQueryUtils.globalCounter.get.queryOptions(),
+
+    isIncrementPersonalCounterReady: true,
+    incrementPersonalCounterMutationOptions:
+      oRPCQueryUtils.personalCounter.increment.mutationOptions({
+        meta: {
+          invalidatesQuery: oRPCQueryUtils.personalCounter.get.queryOptions({
+            input: {
+              userId: session?.user.id,
+            },
+          }).queryKey,
+        },
+      }),
+    personalCounterValueQueryOptions: oRPCQueryUtils.personalCounter.get.queryOptions({
+      input: {
+        userId: session?.user.id,
+      },
+    }),
+  };
+};
+```
+
+## Step 4: Inject the module into the settlement layer
+
+Each settlement layer has its own hook that is responsible for injecting implementation of the modules into the settlement layer object.
+We need to extend the SL object object with the module implementation:
+
+```ts title="_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+import { SettlementLayer } from 'fundset/settlement-layer';
+import { useMemo } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { buildCounterModule } from './modules/counter'; // [!code highlight]
+
+export const usePgSettlementLayer = () => {
+  const { data: session } = authClient.useSession();
+  const pgSettlementLayer: SettlementLayer = useMemo(() => {
+    return {
+      name: 'pg',
+      ...buildCounterModule({ session }), // [!code highlight]
+    };
+  }, [session]);
+  return pgSettlementLayer;
+};
+
+export default usePgSettlementLayer;
+```
+
+## Step 5: Use the module in your application
+
+Congrats! Now you can use the module in your application code:
+
+```ts title="pages/index.tsx"
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useSettlementLayer } from '@/_fundset/settlement-layer';
+
+export default function Home() {
+  const { incrementGlobalCounterMutationOptions, globalCounterValueQueryOptions } = useSettlementLayer();
+  const { data: globalCounterValue } = useQuery(globalCounterValueQueryOptions);
+  const { mutate: incrementGlobalCounter } = useMutation(incrementGlobalCounterMutationOptions);
+
+  return (
+    <>
+      <p>Global counter value: {globalCounterValue}</p>
+      <button onClick={() => incrementGlobalCounter(1)}>Increment global counter</button>
+    </>
+  );
+}
+```

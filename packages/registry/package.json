@@ -1,0 +1,15 @@
+{
+  "name": "@fundset/registry",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./registry.json"
+  },
+  "scripts": {
+    "serve": "serve -p 2137 -s public",
+    "build": "pnpx shadcn@latest build"
+  },
+  "devDependencies": {
+    "serve": "14.2.4"
+  }
+}

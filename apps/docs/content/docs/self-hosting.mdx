@@ -1,0 +1,20 @@
+---
+title: Self-hosting
+description: How to deploy apps built with fundset
+---
+
+Deploying the apps built with fundset is pretty straightforward. You can either use any hosting provider that supports Next.js like Vercel, or build your frontend application and host it on a server of your choice. Check out the [Next.js docs](https://nextjs.org/docs/app/guides/self-hosting) for more information about self-hosting.
+
+A settlement layer may also have some side services that they rely on, like a database, message broker, blockhain etc. Fundset template comes with monorepo packages tailored for each settlement layer, so you can fully simulate the production environment on your local machine. Check what's needed for a given settlement to work and look for hosting of that services or host them yourself.
+
+For example, if you're using the Postgres settlement layer, you'll only need to:
+
+- deploy your Next.js application
+- deploy your Postgres database
+
+Both of these services are available on Vercel.
+
+Check out docs dedicated to your settlement layer of choice to see how to deploy it step by step:
+
+- [pg settlement layer docs](/docs/pg)
+- [evm settlement layer docs](/docs/evm)

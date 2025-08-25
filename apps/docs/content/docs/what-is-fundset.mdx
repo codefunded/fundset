@@ -1,0 +1,33 @@
+---
+title: What is Fundset?
+description: The reasoning behind Fundset and its core concepts
+---
+
+## Idea
+
+Fundset was created from the [idea](https://x.com/mrkampla/status/1951559968907264443) that the distribution method popularized by [shadcn/ui](https://ui.shadcn.com/) might lead to the creation of a new ecosystem, where the business logic is distributed as self-contained modules, and pasted directly into the application, in opposition to the traditional approach of using a package manager and installing dependencies.
+
+Fundset is not about fighting with package managers, they're perfectly fine for what they're designed for. Fundset is about creating a new ecosystem for modules that require excesive customization, which is often not easy to do with npm packages.
+
+A great example of that would be a payments module. If you'd like to handle payments in your app, you can use the payments module from fundset, that will handle user identification, handling transfers and displaying admin data in the CMS dashboard. And if the module doesn't fit all of your needs - you can always edit it however you want! The code for this module lives in your repo from now on, so you can do whatever you want with it.
+
+If you have an idea of something that needs coordination accross the whole stack: Backend,
+Frontend, CMS and UI - it's probably a good idea to create a fundset module for that. If you have
+an implementation that touches a single part of that stack e.g. a function callable only on
+backend that does something specific - it's probably better to make an npm package out of it.
+
+## Motivation
+
+At [codefunded](https://codefunded.com) we've been trying to create a fundraising platform that will be easily extendable and suitable for every client. Turns out, there's no two projects that are the same, and each client always needs some sort of customization. The abstractions that we picked previously, of keeping one repository and implementing client specific changes in it and hiding them behind feature flags, were slowing us down and clogging the repo, up to the point when it became hard to maintain. We see the new approach described above, as a solution to our previous problems.
+
+Also, we had a few clients that recently wanted to swap their settlement layers. We've been working with Web3 customers who decided to pivot and go back to storing their data off-chain e.g. in a postgres database. We've also seen projects migrating between different blockchains (e.g. EVM to Solana) to get on the train hype, to get grants, or because the new ecosystem suits their needs better. Fundset allows for these modules to be written by experts in a given settlement layer and then hooked up into the UI that doesn't know the underlying implementation.
+
+## Terminology
+
+**Settlement Layer (SL)**: The backend ledger that your application will use to store and retrieve data. In the first iteration, you'll be able to choose between Postgres database and EVM based blockchains. Start a github discussion if you need support for other settlement layers.
+
+**Modules**: Self-contained business logic modules that can be installed directly to your repo with fundset CLI. Follow this [guide](/docs/how-to-implement-module) to create your own modules.
+
+**Plugins**: Each module might also need some configuration or data input from the developer. Fundset is based on Payload CMS which has a plugins ecusystem that allow to extend data collections or admin UI with React components. Check out [Payload docs](https://payloadcms.com/docs/plugins/overview)
+
+**Packages**: Monorepo packages that contain required services or external projects that are required for the settlement layer or module to work e.g. postgres SL has a docker compose file that launches a container locally.

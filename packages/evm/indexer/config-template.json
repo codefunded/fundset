@@ -1,0 +1,16 @@
+{
+  "name": "indexer",
+  "raw_events": true,
+  "field_selection": {
+    "transaction_fields": ["hash", "from", "to"]
+  },
+  "networks": [
+    {
+      "id": 31337,
+      "rpc": "http://localhost:8545",
+      "start_block": 0,
+      "contracts": []
+    }
+  ],
+  "unordered_multichain_mode": true
+}

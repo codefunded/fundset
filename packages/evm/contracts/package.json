@@ -1,0 +1,43 @@
+{
+  "name": "@fundset/contracts",
+  "type": "module",
+  "exports": {
+    "./abi": "./abi/index.ts",
+    "./abi/*": "./abi/*.ts",
+    "./localhost_deployed_contracts.json": "./localhost_deployed_contracts.json"
+  },
+  "scripts": {
+    "build": "hardhat compile && tsx ./helpers/postbuild.ts",
+    "clean": "hardhat clean",
+    "test": "hardhat test",
+    "test:sol": "hardhat test solidity",
+    "test:node": "hardhat test node",
+    "check-types": "tsc --noEmit",
+    "predev": "pnpm build && rm -f localhost_deployed_contracts.json",
+    "dev": "pnpm build && pnpx concurrently \"anvil\" \"pnpx tsx helpers/dev-deploy.ts\""
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "0.7.0",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@solidstate/contracts": "^0.0.61"
+  },
+  "devDependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@nomicfoundation/hardhat-ignition": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "@pimlico/alto": "0.0.18",
+    "@solidstate/hardhat-abi-exporter": "^3.0.0",
+    "@types/node": "^22.17.2",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.4.0",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.0.0",
+    "permissionless": "0.2.47",
+    "prool": "^0.0.24",
+    "tsx": "4.20.3",
+    "typescript": "5.9.2",
+    "viem": "^2.34.0",
+    "zod": "4.0.5",
+    "zod-validation-error": "4.0.1"
+  }
+}

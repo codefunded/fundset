@@ -1,0 +1,84 @@
+---
+title: Modules
+description: Fantastic modules and where to find them
+---
+
+Module is a piece of functionality that is standalone and can be used based on a given settlement layer. It is a way of
+extending the functionality of your application in a settlement layer agnostic way. If you have an idea of something that needs coordination accross the whole stack: Backend, Frontend, CMS and UI - it's probably a good idea to create a fundset module for that. If you have an implementation that touches a single part of that stack e.g. a function callable only on
+backend that does something specific - it's probably better to make an npm package out of it.
+
+## Structure
+
+Each module is split into the interface declaration and the implementation. So each module will consist of at least two files.
+
+1. **Declaration file**: in the `_fundset/settlement-layer/modules` directory, each module has to have a `.d.ts` file that contains the extension of the `SettlementLayer` interface, using tanstack-query `MutationOptions` and `QueryOptions` types. This part is settlement layer agnostic and is only defined once, even if you're gonna have different implementations for different settlement layers. This is an example definition from our counter module:
+
+```ts
+import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyReturnValue = any;
+
+declare module 'fundset/settlement-layer' {
+  export interface SettlementLayer {
+    isIncrementGlobalCounterReady: boolean;
+    incrementGlobalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
+    globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+
+    isIncrementPersonalCounterReady: boolean;
+    incrementPersonalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
+    personalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+  }
+}
+```
+
+2. **Implementation files**: each module also has an implementation that is tied to a specific settlement layer. It is located in the `_fundset/settlement-layer/<settlement-layer-name>/modules/<module-name>` directory.
+
+<Files>
+  <Folder name="_fundset" defaultOpen>
+    <Folder name="settlement-layer" defaultOpen>
+      <Folder name="pg" defaultOpen>
+        <Folder name="modules" defaultOpen>
+          <Folder name="counter" defaultOpen>
+            <File name="index.ts" />
+            <File name="orpc.ts" />
+          </Folder>
+        </Folder>
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+The implementation file should return either a direct implementation of the module definition or a function that is gonna build the module implementation based on context that is required for it to work. Which solution to use is up to you. Check out the docs on [how to build your own module](/docs/how-to-implement-module)
+
+## Extending the Settlement Layer
+
+Each settlement layer has its `useSettlementLayerImplementation` hook, which is responsible for constructing the settlement layer object and injecting implementation of the modules into it. That hook is located in the `_fundset/settlement-layer/<settlement-layer-name>/useSettlementLayerImplementation.ts` file.
+In order to inject the module implementation into the settlement layer object, you need to pass it when constructing the settlement layer object:
+
+```ts title="_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+// counter module is using a function to build the module implementation because it requires a user auth session
+import { SettlementLayer } from 'fundset/settlement-layer';
+import { useMemo } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { buildCounterModule } from './modules/counter'; // [!code highlight]
+
+export const usePgSettlementLayer = () => {
+  const { data: session } = authClient.useSession();
+  const pgSettlementLayer: SettlementLayer = useMemo(() => {
+    return {
+      name: 'pg',
+      ...buildCounterModule({ session }), // [!code highlight]
+    };
+  }, [session]);
+  return pgSettlementLayer;
+};
+
+export default usePgSettlementLayer;
+```
+
+After that you should be able to use the module in your application code by using the `useSettlementLayer` hook:
+
+```ts
+const { incrementGlobalCounterMutationOptions } = useSettlementLayer();
+```

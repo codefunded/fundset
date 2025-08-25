@@ -1,0 +1,51 @@
+---
+title: Quick Start
+description: Getting started with fundset
+---
+
+## Installation
+
+A minimum version of Node.js 22 required, Docker is required for running the database in dev mode.
+
+```bash tab="pnpm"
+pnpx fundset init target_dir
+```
+
+The CLI tool witll ask you to choose the settlement layer to use and after that, new fundset template should be initialized.
+Now you can start shipping!
+
+<Callout title="From Existing Codebase?">
+  You can follow the [Manual Installation](/docs/manual-installation) guide to get started.
+</Callout>
+
+### Development
+
+Rename the `.env.example` file to `.env` and fill in missing environment variables required by your chosen settlement layer.
+
+Then you can run the app in development mode
+
+```bash tab="pnpm"
+pnpm dev
+```
+
+and see [http://localhost:3000](http://localhost:3000).
+
+Payload CMS Admin panel is available at [http://localhost:3000/admin](http://localhost:3000/admin). An admin account is automatically created with the following credentials:
+
+- email: `admin@admin.com`
+- password: `Admin1234`
+
+## Learn More
+
+New to here? Don't worry, we'll be happy to answer your questions
+
+If you find anything confusing, please give your feedback on [Github Discussion](https://github.com/codefunded/fundset/discussions)!
+
+<Cards>
+  <Card href="/docs/structure" title="Fundset Structure">
+    Check out the fundset structure and how to customize it.
+  </Card>
+  <Card href="/docs/how-to-implement-module" title="Modules">
+    Learn how to implement your own business logic modules.
+  </Card>
+</Cards>

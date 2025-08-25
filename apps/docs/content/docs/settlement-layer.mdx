@@ -1,0 +1,83 @@
+---
+title: Settlement Layer
+description: What is a settlement layer and how to use it
+---
+
+## What is a settlement layer?
+
+A settlement layer is a fancy term to describe a "backend" solution to store the data, process logic and provide an API for the frontend.
+
+Fundset aims to be a "backend-agnostic" solution, so you can use any backend you want, whether it is a traditional database, a blockchain, a message broker, a file storage, etc. Posibilities are endless, anything that can store data and process logic can be used as a settlement layer.
+
+Initially, Fundset comes with two settlement layers:
+
+- Postgres (SQL database)
+- EVM (blockchain)
+
+But you can easily create your own settlement layer by following the [how to implement a Settlement Layer](/docs/settlement-layer#how-to-implement-a-settlement-layer) guide.
+
+## How to choose a settlement layer?
+
+The choice of the settlement layer is a very important decision. It will affect the way you build your application and the way you will deploy it.
+
+Thanks to fundset though, it is not a permanent decision. You can easily switch between settlement layers by changing the settlement layer in the config and your UI stays the same.
+
+### Postgres vs EVM: Which to pick?
+
+**Postgres** is a classic SQL database. Choose it if you:
+
+- Want fast, cheap, and reliable storage
+- Need strong consistency, transactions, or complex queries
+- Are building traditional web apps, dashboards, or internal tools
+- Care about easy local development and simple deployment
+- Don't need on-chain transparency or trustless execution
+
+**EVM** (Ethereum Virtual Machine) is a blockchain based settlement layer. Choose it if you:
+
+- Need trustless, decentralized, or censorship-resistant data
+- Want on-chain transparency, composability, or interoperability with other smart contracts
+- Are building dApps, DAOs, or anything that needs programmable money
+- Can tolerate higher latency, gas fees, and more complex deployment
+- Don't need complex relational queries or high throughput
+
+**TL;DR:**  
+Use **Postgres** for most apps unless you have a strong reason to go on-chain. Use **EVM** if you need blockchain guarantees or want to build for the web3 ecosystem.
+
+## Using multiple settlement layers at once
+
+You can even mix settlement layers in a single application. Fundset is flexible enough to support this pattern if you want to get fancy. Just install both of settlement layers into the repo and then, in the UI code when calling `useSettlementLayer` hook, specify the settlement layer name you want to use:
+
+```tsx
+const { globalCounterValueQueryOptions } = useSettlementLayer('pg');
+const { personalCounterValueQueryOptions } = useSettlementLayer('evm');
+```
+
+First call will return the settlement layer implementation for the Postgres settlement layer, regardless of the default settlement layer that is set in the admin panel. Second call will always return the evm implementation.
+
+By default, if you don't specify the settlement layer name, the first one from the list of installed settlement layers will be used. Check out admin panel to see which one is first but it should be the last one that you defined in the list of plugins in `payload.config.ts`.
+
+## How to implement a settlement layer?
+
+It isn't as hard as it sounds, but we strongly recommend you to [contact us](https://github.com/codefunded/fundset/discussions) if you want to implement a custom settlement layer. We'll be happy to help you.
+
+**Settlement layer consist of:**
+
+- Payload CMS plugin that extends the base config with a new option
+- useSettlementLayerImplementation hook that builds the settlement layer and provides it for the React components
+- auth component specific to the settlement layer
+- monorepo packages that contain necessary infrastructure for the settlement layer to work (e.g docker compose file for the database)
+
+**Here's a brief guide on how to implement a new settlement layer for MySql:**
+
+1. create a new monorepo package called `mysql` in `packages`. Dump a docker compose file into it that sets up a MySql database. Also remember to include a `package.json` file with a dev script that starts docker compose.
+2. create a new directory called `mysql` in `apps/web/src/_fundset/settlement-layer`.
+3. in that directory, create a payload CMS plugin that extends the base config with a new option (check out how postgres SL does it)
+4. load any env variables needed for the settlement layer to work (e.g. database url) in the plugin's `onInit` function
+5. implement the logic for all modules for that settlement layer. This will include setting up the database schema and connection (we recommend using drizzle, check out how postgres SL does it), setting some backend solution (we recommend oRPC)
+6. create `_fundset/settlement-layer/mysql/index.tsx` file that is gonna default export a component that renders all the context providers needed for the SL to work
+7. create `_fundset/settlement-layer/mysql/useSettlementLayerImplementation.ts` file that is gonna build the actual settlement layer object
+8. invoke the payload CMS plugin in the payload config file
+
+and now you have a new settlement layer ready to be used in your app!
+
+If you went through that process and created a new settlement layer, please [share it with us](https://github.com/codefunded/fundset/discussions) so we can add it to the list of supported settlement layers or give you feedback on the implementation.

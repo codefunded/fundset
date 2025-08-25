@@ -1,0 +1,30 @@
+---
+title: Customising appearance (themes)
+description: How to change themes in fundset apps
+---
+
+Fundset is using shadcn/ui for the UI. Every shadcn tailwind V4 compatible theme will work in Fundset. Check out the [shadcn docs](https://ui.shadcn.com/docs/theming) to see how to create a new theme.
+
+## Extending the theme in runtime
+
+Fundset base Payload CMS plugin is setting up a Theme [global config](https://payloadcms.com/docs/configuration/globals#global-configs) with `theme` field. You can store any CSS theme code there, which will then be injected to your website.
+
+Check out [tweak.cn](https://tweakcn.com) to create a theme that suits your needs and then copy the CSS code and paste it into the `theme` field in the Theme global config.
+
+You can edit this during runtime, either by editing the global config in the Payload dashboard or by using the payload API:
+
+```ts
+import payloadConfig from '@/payload.config';
+import { getPayload } from 'payload';
+
+const payload = await getPayload({
+  config: payloadConfig,
+});
+
+await payload.updateGlobal({
+  slug: 'theme',
+  data: {
+    theme: '...', // <--- your theme code here
+  },
+}),
+```

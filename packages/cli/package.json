@@ -1,0 +1,32 @@
+{
+  "name": "fundset",
+  "version": "0.1.0",
+  "bin": {
+    "fundset": "dist/index.mjs"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "scripts": {
+    "build": "pkgroll --clean-dist --sourcemap",
+    "prepublishOnly": "pnpm build",
+    "dev": "pkgroll --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.3.1",
+    "prompts": "^2.4.2",
+    "tar": "^7.4.3",
+    "ts-morph": "^26.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/prompts": "^2.4.9",
+    "pkgroll": "^2.15.3",
+    "typescript": "^5.9.2"
+  }
+}

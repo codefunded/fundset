@@ -1,0 +1,24 @@
+packages:
+  - packages/**
+  - apps/**
+onlyBuiltDependencies:
+  - '@apollo/protobufjs'
+  - '@posthog/cli'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@swc/core'
+  - '@tailwindcss/oxide'
+  - better-sqlite3
+  - bufferutil
+  - core-js
+  - core-js-pure
+  - esbuild
+  - keccak
+  - msgpackr-extract
+  - prisma
+  - protobufjs
+  - rescript
+  - sharp
+  - tiny-secp256k1
+  - unrs-resolver
+  - utf-8-validate

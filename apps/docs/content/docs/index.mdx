@@ -1,0 +1,49 @@
+---
+title: Introduction
+---
+
+Fundset is a **template ecosystem for creating composable, settlement-layer-agnostic fast-moving applications**.
+
+Fundset introduces a common abstraction between your backend ledger (settlement layer) and frontend, giving you a strucute that allows you to install modules of business logic directly into your repo, where you can always read it, modify it or swap it out completely, with the distribution method copied from [shadcn/ui](https://ui.shadcn.com/).
+
+This structure and distribution method also gives a nice side effect of the ability to write frontend code once, and then swapping the underlying settlement layer implementation, without the need to rewrite the frontend code.
+
+Fundset consists of:
+
+- **Registry of modules**: A shadcn CLI compatible registry containing modules, plugins and settlement layer implementations that can be installed directly to your repo
+- **Starter templates**: templates for new applications for each supported settlement layer
+- **CLI**: a command line tool to setup a new repo or install modules, plugins and settlement layer implementations into existing repos
+
+## Why Fundset?
+
+Because it can speed you up significantly and allow you to easily reuse code accross projects and share your modules with the community.
+
+Fundset intends to be a "template" for building apps based on "vertical modules" that span across the whole stack: from Backend and CMS through frontend and UI, utilizing the shadcn/ui distribution method.
+A vertical module is a complete piece of functionality that works end-to-end after it is copied to your repo with a CLI tool. It may require some configuration but generally it should work right away.
+
+For example: instead of implementing a new page for raising funds for your product manually, installing npm packages, creating a database tables, backend logic and UI all by yourself, you can just reuse a fundset module that does that by simply running a CLI command.
+On top of that it encourages a clean modular code architecture where each module is self-contained and can be easily reused.
+
+Fundset has a few default dependencies that are imposed by design to make a setup sensible and reuseable. An opinionated set of rules is needed for this shadcn/ui distribution method to work, because without the rules, modules wouldn't be composable and reusable accross projects - each module could assume different tech stacks and implementation methods which would prevent others from reusing that module.
+
+- **Composable Modules:** Plug business logic in as self-contained modules, installed directly to your repo with fundset CLI.
+- **Settlement Layer Agnostic:** Swap underlying backends (Postgres, EVM, etc.) without changing UI logic.
+- **State & Networking:** Built on TanStack Query; queries and mutations give you caching, loading, error handling, and refetching out of the box.
+- **Extensible CMS:** Powered by Payload CMS; build plugins and extend the admin UI with React components.
+- **AI-Friendly:** Opinionated context + types + examples, make it trivial to automate or assist development with LLMs.
+
+<Callout title="Want to learn more?">
+  Read our in-depth [What is Fundset](/docs/what-is-fundset) introduction.
+</Callout>
+
+## Standing on the shoulders of giants
+
+Fundset is built on top of the following projects:
+
+- [Next.js](https://nextjs.org/)
+- [Payload CMS](https://payloadcms.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [TanStack Query](https://tanstack.com/query)
+- [Turborepo](https://turbo.build/)
+- [pnpm](https://pnpm.io/)
+- [next-intl](https://next-intl.dev/)

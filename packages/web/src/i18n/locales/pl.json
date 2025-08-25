@@ -1,0 +1,54 @@
+{
+  "HomePage": {
+    "title": "Witaj Fundset!",
+    "headliner": "Buduj przyszłość internetowych finansów",
+    "increment": "Dodaj",
+    "login_with": "Zaloguj się przez {connector}",
+    "global_counter_value": "Wartość globalnego licznika",
+    "personal_counter_value": "Wartość licznika osobistego",
+    "connected_with": "Połączono {address} z {connector}",
+    "balance": "Saldo: {balance}",
+    "disconnect": "Wyloguj",
+    "sign_in": "Zaloguj się",
+    "sign_up": "Zarejestruj się"
+  },
+  "Languages": {
+    "EN": "Angielski",
+    "PL": "Polski"
+  },
+  "Errors": {
+    "cannot_increment": "Nie udało się dodać wartości do licznika",
+    "CounterV2__ZeroIncrement": "Nie można dodać zero. Zmień wartość dodawania.",
+    "TX_REJECTED_BY_USER": "Transakcja odrzucona przez użytkownika",
+    "FAILED_TO_SWITCH_TO_REQUIRED_NETWORK": "Nie udało się przełączyć do wymaganej sieci",
+    "INSUFFICIENT_FUNDS": "Niewystarczające środki",
+    "CONTRACT_EXECUTION_FAILED": "Nie udało się wykonać transakcji",
+    "CONTRACT_FUNCTION_REVERTED": "Nie udało się wykonać funkcji",
+    "TX_REJECTED_BY_NETWORK": "Transakcja odrzucona przez sieć",
+    "TRANSACTION_CONFIRMATION_TIMED_OUT": "Transakcja nie została potwierdzona",
+    "RPC_REQUEST_FAILED": "Nie udało się wykonać żądania",
+    "UNKNOWN_ERROR": "Nieznany błąd"
+  },
+  "ErrorPage": {
+    "something_went_wrong": "Ups! Coś poszło nie tak!",
+    "description": "Wystąpił nieoczekiwany błąd. Błąd został wysłany do programisty, ale możesz też skopiować i udostępnić ten kod błędu:",
+    "reload": "Odśwież stronę"
+  },
+  "Auth": {
+    "login_with_google": "Zaloguj się przez Google",
+    "signup_title": "Zarejestruj się",
+    "email": "Email",
+    "email_placeholder": "m@przyklad.com",
+    "password": "Hasło",
+    "repeat_password": "Powtórz hasło",
+    "signup_description": "Utwórz konto, aby rozpocząć",
+    "login_title": "Zaloguj się",
+    "login_description": "Zaloguj się do swojego konta, aby kontynuować",
+    "already_have_account": "Masz już konto?",
+    "login": "Zaloguj się",
+    "dont_have_account": "Nie masz jeszcze konta?",
+    "signup": "Zarejestruj się",
+    "loading": "Ładowanie...",
+    "disconnect": "Wyloguj się"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "fundset-pg-settlement-layer",
+  "type": "registry:item",
+  "title": "fundset-pg-settlement-layer",
+  "description": "fundset-pg-settlement-layer",
+  "registryDependencies": [
+    "https://fundset.vercel.app/r/fundset-core.json"
+  ],
+  "files": [
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/index.tsx",
+      "content": "'use client';\n\nconst PgSettlementLayerProvider = ({ children }: React.PropsWithChildren) => {\n  return <>{children}</>;\n};\n\nexport default PgSettlementLayerProvider;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/index.tsx"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts",
+      "content": "import { SettlementLayer } from 'fundset/settlement-layer';\nimport { useMemo } from 'react';\nimport { authClient } from '@/lib/auth-client';\nimport { buildCounterModule } from './modules/counter';\n\nexport const usePgSettlementLayer = () => {\n  const { data: session } = authClient.useSession();\n  const pgSettlementLayer: SettlementLayer = useMemo(() => {\n    return {\n      name: 'pg',\n      ...buildCounterModule({ session }),\n    };\n  }, [session]);\n  return pgSettlementLayer;\n};\n\nexport default usePgSettlementLayer;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/db-schema.ts",
+      "content": "import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';\n\nexport const countersTable = pgTable('counters', {\n  userId: varchar({ length: 255 }).notNull().primaryKey(),\n  value: integer().notNull(),\n});\n\nexport const globalCounterTable = pgTable('global_counter', {\n  value: integer().notNull().default(0),\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/db-schema.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/auth-schema.ts",
+      "content": "import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';\n\nexport const user = pgTable('user', {\n  id: text('id').primaryKey(),\n  name: text('name').notNull(),\n  email: text('email').notNull().unique(),\n  emailVerified: boolean('email_verified')\n    .$defaultFn(() => false)\n    .notNull(),\n  image: text('image'),\n  createdAt: timestamp('created_at')\n    .$defaultFn(() => /* @__PURE__ */ new Date())\n    .notNull(),\n  updatedAt: timestamp('updated_at')\n    .$defaultFn(() => /* @__PURE__ */ new Date())\n    .notNull(),\n});\n\nexport const session = pgTable('session', {\n  id: text('id').primaryKey(),\n  expiresAt: timestamp('expires_at').notNull(),\n  token: text('token').notNull().unique(),\n  createdAt: timestamp('created_at').notNull(),\n  updatedAt: timestamp('updated_at').notNull(),\n  ipAddress: text('ip_address'),\n  userAgent: text('user_agent'),\n  userId: text('user_id')\n    .notNull()\n    .references(() => user.id, { onDelete: 'cascade' }),\n});\n\nexport const account = pgTable('account', {\n  id: text('id').primaryKey(),\n  accountId: text('account_id').notNull(),\n  providerId: text('provider_id').notNull(),\n  userId: text('user_id')\n    .notNull()\n    .references(() => user.id, { onDelete: 'cascade' }),\n  accessToken: text('access_token'),\n  refreshToken: text('refresh_token'),\n  idToken: text('id_token'),\n  accessTokenExpiresAt: timestamp('access_token_expires_at'),\n  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),\n  scope: text('scope'),\n  password: text('password'),\n  createdAt: timestamp('created_at').notNull(),\n  updatedAt: timestamp('updated_at').notNull(),\n});\n\nexport const verification = pgTable('verification', {\n  id: text('id').primaryKey(),\n  identifier: text('identifier').notNull(),\n  value: text('value').notNull(),\n  expiresAt: timestamp('expires_at').notNull(),\n  createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()),\n  updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()),\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/auth-schema.ts"
+    },
+    {
+      "path": "../web/drizzle.config.ts",
+      "content": "import 'dotenv/config';\nimport { defineConfig } from 'drizzle-kit';\nimport { env } from '@/env';\n\nexport default defineConfig({\n  out: './src/_fundset/settlement-layer/pg/drizzle',\n  schema: [\n    './src/_fundset/settlement-layer/pg/db-schema.ts',\n    './src/_fundset/settlement-layer/pg/auth-schema.ts',\n  ],\n  dialect: 'postgresql',\n  dbCredentials: {\n    url: env.DATABASE_URI,\n  },\n  verbose: true,\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/drizzle.config.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/plugin/index.ts",
+      "content": "import type { Config } from 'payload';\nimport { PgSettlementLayer } from './blocks/PostgresSettlementLayer';\nimport { spawn } from 'node:child_process';\n\nexport const pgSettlementLayerPlugin =\n  () =>\n  (config: Config): Config => {\n    config.globals ??= [];\n    config.collections ??= [];\n\n    // append the postgres option to the settlement layer type field\n    const fundsetSettlementLayer = config.globals.find(g => g.slug === 'fundset-settlement-layer');\n\n    if (!fundsetSettlementLayer) {\n      throw new Error(\n        'fundsetSettlementLayer not found, run fundsetBasePlugin before postgresSettlementLayerPlugin',\n      );\n    }\n\n    const settlementLayerTypeField = fundsetSettlementLayer.fields.find(\n      f => f.type === 'blocks' && f.name === 'settlementLayer',\n    )!;\n\n    if (settlementLayerTypeField.type === 'blocks') {\n      settlementLayerTypeField.blocks.push(PgSettlementLayer);\n    }\n\n    const defaultOnInit = config.onInit;\n\n    config.onInit = async payload => {\n      await defaultOnInit?.(payload);\n\n      const { pgSettlementLayerEnv } = await import('@/_fundset/settlement-layer/pg/plugin/env');\n      pgSettlementLayerEnv();\n\n      if (process.env.NODE_ENV === 'development') {\n        const fundsetSettlementLayer = await payload.findGlobal({\n          slug: 'fundset-settlement-layer',\n        });\n\n        const settlementLayerConfigs = fundsetSettlementLayer.settlementLayer ?? [];\n\n        await payload.updateGlobal({\n          slug: 'fundset-settlement-layer',\n          data: {\n            settlementLayer: settlementLayerConfigs\n              .concat([\n                {\n                  type: 'pg',\n                  blockType: 'pg-settlement-layer',\n                },\n              ])\n              .toReversed(),\n          },\n        });\n\n        await new Promise(resolve =>\n          spawn('pnpm', ['drizzle-kit', 'generate'], { stdio: 'inherit' }).on('close', resolve),\n        );\n        await new Promise(resolve =>\n          spawn('pnpm', ['drizzle-kit', 'migrate'], { stdio: 'inherit' }).on('close', resolve),\n        );\n      }\n    };\n\n    return config;\n  };\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/index.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/plugin/env.ts",
+      "content": "import { createEnv } from '@t3-oss/env-nextjs';\nimport { z } from 'zod';\n\nexport const pgSettlementLayerEnv = () =>\n  createEnv({\n    server: {\n      GOOGLE_CLIENT_ID: z.string().optional(),\n      GOOGLE_CLIENT_SECRET: z.string().optional(),\n    },\n    client: {},\n    experimental__runtimeEnv: {},\n    emptyStringAsUndefined: true,\n  });\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/env.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/plugin/blocks/PostgresSettlementLayer.ts",
+      "content": "import type { Block } from 'payload';\n\nexport const PgSettlementLayer: Block = {\n  slug: 'pg-settlement-layer',\n  fields: [\n    {\n      name: 'type',\n      type: 'select',\n      defaultValue: 'pg',\n      required: true,\n      options: [\n        {\n          label: 'pg',\n          value: 'pg',\n        },\n      ],\n    },\n  ],\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/plugin/blocks/PostgresSettlementLayer.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/orpc/client.ts",
+      "content": "import type { RouterClient } from '@orpc/server';\nimport { createORPCClient } from '@orpc/client';\nimport { RPCLink } from '@orpc/client/fetch';\nimport { router } from './router';\nimport { createTanstackQueryUtils } from '@orpc/tanstack-query';\nimport { env } from '@/env';\n\nconst link = new RPCLink({\n  url: `${env.NEXT_PUBLIC_APP_URL}/api/rpc`,\n  headers: async () => {\n    if (typeof window !== 'undefined') {\n      return {};\n    }\n\n    const { headers } = await import('next/headers');\n    return Object.fromEntries(await headers());\n  },\n});\n\nexport const orpc: RouterClient<typeof router> = createORPCClient(link);\n\nexport const oRPCQueryUtils = createTanstackQueryUtils(orpc);\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/client.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/orpc/router.ts",
+      "content": "import { counterModule } from '../modules/counter/orpc';\n\nexport const router = {\n  ...counterModule,\n};\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/router.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/orpc/common.ts",
+      "content": "import { ORPCError, os } from '@orpc/server';\nimport { auth } from '@/lib/auth';\nimport { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';\nimport { env } from '@/env';\n\nexport const dbProvider = os\n  .$context<{ db?: NodePgDatabase<Record<string, never>> }>()\n  .middleware(async ({ next, context }) => {\n    const db = context.db ?? drizzle(env.DATABASE_URI);\n    return next({ context: { db } });\n  });\n\nexport const authenticatedMiddleware = os\n  .$context<{ headers: Headers }>()\n  .middleware(async ({ next, context }) => {\n    const session = await auth.api.getSession({\n      headers: context.headers,\n    });\n\n    if (session) {\n      return next({ context: { session } });\n    }\n\n    throw new ORPCError('UNAUTHORIZED');\n  });\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/common.ts"
+    },
+    {
+      "path": "../web/src/app/(app)/api/rpc/[[...all]]/route.ts",
+      "content": "import { router } from '@/_fundset/settlement-layer/pg/orpc/router';\nimport { RPCHandler } from '@orpc/server/fetch';\n\nconst handler = new RPCHandler(router);\n\nconst corsHeaders = {\n  'access-control-allow-origin': '*',\n  'access-control-allow-methods': 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',\n  'access-control-allow-headers': '*',\n};\n\nasync function handleRequest(request: Request) {\n  const { response } = await handler.handle(request, {\n    prefix: '/api/rpc',\n    context: {\n      headers: request.headers,\n    },\n  });\n\n  if (response) {\n    Object.entries(corsHeaders).forEach(([k, v]) => response.headers.set(k, v));\n    return response;\n  }\n\n  return new Response('Not found', {\n    status: 404,\n    headers: corsHeaders,\n  });\n}\n\nasync function handleOptions() {\n  return new Response(null, {\n    status: 204,\n    headers: corsHeaders,\n  });\n}\n\nexport const OPTIONS = handleOptions;\nexport const HEAD = handleRequest;\nexport const GET = handleRequest;\nexport const POST = handleRequest;\nexport const PUT = handleRequest;\nexport const PATCH = handleRequest;\nexport const DELETE = handleRequest;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/app/(app)/api/rpc/[[...all]]/route.ts"
+    },
+    {
+      "path": "../web/src/lib/auth.ts",
+      "content": "import { betterAuth } from 'better-auth';\nimport { drizzleAdapter } from 'better-auth/adapters/drizzle';\nimport { drizzle } from 'drizzle-orm/node-postgres';\nimport { env } from '@/env';\nimport * as authSchema from '@/_fundset/settlement-layer/pg/auth-schema';\nimport { pgSettlementLayerEnv } from '@/_fundset/settlement-layer/pg/plugin/env';\n\nconst db = drizzle(env.DATABASE_URI);\n\nexport const auth = betterAuth({\n  appName: 'fundset',\n  baseURL: env.NEXT_PUBLIC_APP_URL,\n  database: drizzleAdapter(db, {\n    provider: 'pg',\n    schema: authSchema,\n  }),\n  emailAndPassword: {\n    enabled: true,\n  },\n  socialProviders: {\n    google: {\n      clientId: pgSettlementLayerEnv().GOOGLE_CLIENT_ID!,\n      clientSecret: pgSettlementLayerEnv().GOOGLE_CLIENT_SECRET!,\n    },\n  },\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/lib/auth.ts"
+    },
+    {
+      "path": "../web/src/lib/auth-client.ts",
+      "content": "import { createAuthClient } from 'better-auth/react';\nimport { nextCookies } from 'better-auth/next-js';\n\nexport const authClient = createAuthClient({\n  plugins: [nextCookies()],\n});\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/lib/auth-client.ts"
+    },
+    {
+      "path": "../web/src/features/auth/pg/index.tsx",
+      "content": "'use client';\n\nimport { Button } from '@/components/ui/button';\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';\nimport { Input } from '@/components/ui/input';\nimport { Label } from '@/components/ui/label';\nimport { authClient } from '@/lib/auth-client';\nimport { useTranslations } from 'next-intl';\nimport { useState, useActionState } from 'react';\n\nconst LoginWithGoogle = () => {\n  const t = useTranslations('Auth');\n\n  return (\n    <Button\n      type=\"button\"\n      onClick={() => authClient.signIn.social({ provider: 'google' })}\n      variant=\"outline\"\n      className=\"w-full\"\n    >\n      {t('login_with_google')}\n    </Button>\n  );\n};\n\nconst SignupForm = ({ switchToLogin }: { switchToLogin: () => void }) => {\n  const t = useTranslations('Auth');\n  const [, formAction, isPending] = useActionState(async (_: unknown, formData: FormData) => {\n    const email = formData.get('email') as string;\n    const password = formData.get('password') as string;\n    const res = await authClient.signUp.email({\n      name: email,\n      email,\n      password,\n    });\n    switchToLogin();\n    return res;\n  }, null);\n\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>{t('signup_title')}</CardTitle>\n        <CardDescription>{t('signup_description')}</CardDescription>\n      </CardHeader>\n      <CardContent>\n        <form action={formAction}>\n          <div className=\"flex flex-col gap-6\">\n            <div className=\"grid gap-3\">\n              <Label htmlFor=\"email\">{t('email')}</Label>\n              <Input\n                id=\"email\"\n                name=\"email\"\n                type=\"email\"\n                placeholder={t('email_placeholder')}\n                required\n              />\n            </div>\n            <div className=\"grid gap-3\">\n              <div className=\"flex items-center\">\n                <Label htmlFor=\"password\">{t('password')}</Label>\n              </div>\n              <Input id=\"password\" name=\"password\" type=\"password\" required />\n            </div>\n            <div className=\"grid gap-3\">\n              <div className=\"flex items-center\">\n                <Label htmlFor=\"password\">{t('repeat_password')}</Label>\n              </div>\n              <Input id=\"password\" name=\"password\" type=\"password\" required />\n            </div>\n            <div className=\"flex flex-col gap-3\">\n              <Button disabled={isPending} type=\"submit\" className=\"w-full\">\n                {t('signup')}\n              </Button>\n              <LoginWithGoogle />\n            </div>\n          </div>\n          <div className=\"mt-4 text-center text-sm\">\n            {t('already_have_account')}{' '}\n            <button onClick={switchToLogin} className=\"underline underline-offset-4\">\n              {t('login_title')}\n            </button>\n          </div>\n        </form>\n      </CardContent>\n    </Card>\n  );\n};\n\nconst LoginForm = ({ switchToSignup }: { switchToSignup: () => void }) => {\n  const t = useTranslations('Auth');\n  const [, formAction, isPending] = useActionState(async (_: unknown, formData: FormData) => {\n    const email = formData.get('email') as string;\n    const password = formData.get('password') as string;\n    const res = await authClient.signIn.email({\n      email,\n      password,\n    });\n    return res;\n  }, null);\n\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>{t('login_title')}</CardTitle>\n        <CardDescription>{t('login_description')}</CardDescription>\n      </CardHeader>\n      <CardContent>\n        <form\n          action={formAction}\n          onSubmit={e => {\n            e.preventDefault();\n            const form = e.currentTarget as HTMLFormElement;\n            const formData = new FormData(form);\n            const email = formData.get('email') as string;\n            const password = formData.get('password') as string;\n            authClient.signIn.email({\n              email,\n              password,\n            });\n          }}\n        >\n          <div className=\"flex flex-col gap-6\">\n            <div className=\"grid gap-3\">\n              <Label htmlFor=\"email\">{t('email')}</Label>\n              <Input\n                id=\"email\"\n                name=\"email\"\n                type=\"email\"\n                placeholder={t('email_placeholder')}\n                required\n              />\n            </div>\n            <div className=\"grid gap-3\">\n              <div className=\"flex items-center\">\n                <Label htmlFor=\"password\">{t('password')}</Label>\n              </div>\n              <Input id=\"password\" name=\"password\" type=\"password\" required />\n            </div>\n            <div className=\"flex flex-col gap-3\">\n              <Button disabled={isPending} type=\"submit\" className=\"w-full\">\n                {t('login')}\n              </Button>\n              <LoginWithGoogle />\n            </div>\n          </div>\n          <div className=\"mt-4 text-center text-sm\">\n            {t('dont_have_account')}{' '}\n            <button onClick={switchToSignup} className=\"underline underline-offset-4\">\n              {t('signup_title')}\n            </button>\n          </div>\n        </form>\n      </CardContent>\n    </Card>\n  );\n};\n\nconst PgAuthComponent = () => {\n  const { data: session, isPending } = authClient.useSession();\n  const t = useTranslations('Auth');\n  const [authPage, setAuthPage] = useState<'signup' | 'login'>('login');\n\n  return (\n    <div className=\"flex w-full flex-col items-center gap-4\">\n      {session?.user ? (\n        <Button variant=\"outline\" onClick={() => authClient.signOut()}>\n          {t('disconnect')}\n        </Button>\n      ) : (\n        <div className={'flex w-sm flex-col gap-6'}>\n          {authPage === 'signup' ? (\n            <SignupForm switchToLogin={() => setAuthPage('login')} />\n          ) : (\n            <LoginForm switchToSignup={() => setAuthPage('signup')} />\n          )}\n        </div>\n      )}\n      {isPending ? (\n        <div>{t('loading')}</div>\n      ) : (\n        <div>{session && JSON.stringify(session, null, 2)}</div>\n      )}\n    </div>\n  );\n};\n\nexport default PgAuthComponent;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/features/auth/pg/index.tsx"
+    },
+    {
+      "path": "../web/src/app/(app)/api/auth/[...all]/route.ts",
+      "content": "import { auth } from '@/lib/auth';\nimport { toNextJsHandler } from 'better-auth/next-js';\n\nexport const { POST, GET } = toNextJsHandler(auth);\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/app/(app)/api/auth/[...all]/route.ts"
+    }
+  ],
+  "meta": {
+    "dependencies": {
+      "web": [
+        "drizzle-orm",
+        "@orpc/server",
+        "@orpc/client",
+        "@orpc/tanstack-query",
+        "pg",
+        "zod",
+        "@t3-oss/env-nextjs",
+        "dotenv"
+      ]
+    },
+    "devDependencies": {
+      "web": [
+        "drizzle-kit"
+      ]
+    }
+  }
+}
