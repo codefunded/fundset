@@ -8,7 +8,7 @@ export async function deployDevelopment() {
 
   const [, fundsetModulesDeployer] = await viem.getWalletClients();
 
-  const result = await deploy(networkConnection, fundsetModulesDeployer);
+  const result = await deploy(networkConnection, fundsetModulesDeployer.account.address);
 
   await deployAAContracts();
 

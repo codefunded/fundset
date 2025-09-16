@@ -1,4 +1,4 @@
-import type { Config } from 'payload';
+import type { Config, PayloadRequest } from 'payload';
 import { EvmSettlementLayer } from './blocks/EvmSettlementLayer';
 import { seed } from './seed';
 
@@ -22,6 +22,20 @@ export const evmSettlementLayerPlugin =
 
     if (settlementLayerTypeField.type === 'blocks') {
       settlementLayerTypeField.blocks.push(EvmSettlementLayer);
+    }
+
+    config.endpoints ??= [];
+
+    if (process.env.NODE_ENV === 'development') {
+      config.endpoints.push({
+        path: '/evm/hot-contract-reload',
+        method: 'post',
+        handler: async (req: PayloadRequest) => {
+          const deployedContracts = await req.json?.();
+          await seed(req.payload, deployedContracts, true);
+          return new Response(JSON.stringify({ message: 'OK' }));
+        },
+      });
     }
 
     const defaultOnInit = config.onInit;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as viem from 'viem';
 import * as chains from 'wagmi/chains';
 import { type Chain } from 'wagmi/chains';
@@ -70,6 +70,24 @@ const EvmSettlementLayerProvider = ({
       pollingInterval: 1000,
     });
   }, [props.config.chainConfigs]);
+
+  useEffect(function hotContractReload() {
+    if (process.env.NODE_ENV === 'development') {
+      const wss = new WebSocket('http://localhost:9999');
+      wss.onopen = () => {
+        console.log('Hot Contract Reload: WebSocket connection established');
+      };
+      wss.onmessage = event => {
+        if (event.data === 'reload') {
+          window.location.reload();
+        }
+      };
+      return () => {
+        console.log('Hot Contract Reload: WebSocket connection closed');
+        wss.close();
+      };
+    }
+  }, []);
 
   return (
     <WagmiProvider config={wagmiConfig}>

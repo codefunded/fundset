@@ -23,7 +23,7 @@ async function waitForNetworkToBeReady(client: viem.PublicClient) {
 
 type DeployedContracts = Record<
   string,
-  { address: string; abi: Abi; facets: { name: string; abi: Abi }[] }
+  { contract: string; abi: Abi; facets: { name: string; abi: Abi }[] }
 >;
 
 const getDeployedContracts = async () => {
@@ -52,7 +52,7 @@ const generateConfigFile = async (contracts: DeployedContracts) => {
   for (const [contractName, contractData] of Object.entries(contracts)) {
     const newContract = {
       name: contractName,
-      address: [contractData.address],
+      address: [contractData.contract],
       handler: 'src/EventHandlers.ts',
       events: contractData.abi
         .filter(abi => abi.type === 'event')

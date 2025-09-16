@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
   },
+
   async rewrites() {
     if (process.env.NODE_ENV === 'development') {
       // rewrites to bundler for account abstraction in evm settlement layer due to CORS not being set by the bundler. ONLY IN DEV

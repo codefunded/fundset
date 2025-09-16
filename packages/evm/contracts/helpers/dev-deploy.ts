@@ -6,31 +6,15 @@ import { waitForNetworkToBeReady } from './utils/wait-for-network-ready.ts';
 import { runBundler } from './utils/run-bundler.ts';
 import { startPaymaster } from './utils/paymaster/index.ts';
 import { mineBlocks } from './utils/mine-blocks.ts';
+import { serializeContractDeploymentResult } from './utils/serialize-contract-deployment-result.ts';
 
 async function deployContracts() {
   const contracts = await deployDevelopment();
-  const deployedContracts = Object.entries(contracts)
-    .map(([name, contract]) => {
-      console.log(`${name} deployed to: ${contract.contract.address}`);
-      return {
-        [name]: {
-          address: contract.contract.address,
-          abi: contract.contract.abi,
-          facets:
-            'facets' in contract
-              ? Object.entries(contract.facets).map(([facetName, facetValue]) => ({
-                  name: facetName,
-                  abi: facetValue.abi,
-                }))
-              : [],
-        },
-      };
-    })
-    .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+  const serializedContracts = serializeContractDeploymentResult(contracts);
 
   await fs.writeFile(
     'localhost_deployed_contracts.json',
-    JSON.stringify(deployedContracts, null, 2),
+    JSON.stringify(serializedContracts, null, 2),
   );
   console.log('Deployed contracts saved to localhost_deployed_contracts.json');
 }

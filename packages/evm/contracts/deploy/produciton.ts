@@ -1,27 +1,25 @@
+import path from 'node:path';
 import { network } from 'hardhat';
+import { NetworkConnection } from 'hardhat/types/network';
+import { Address } from 'viem';
 import DiamondProxyModule from '../ignition/modules/DiamondProxy.ts';
 import CounterVersionsModule from '../ignition/modules/CounterVersions.ts';
 import ERC20Module from '../ignition/modules/ERC20.ts';
-import { NetworkConnection } from 'hardhat/types/network';
-import path from 'node:path';
 
-type Deployer = Awaited<
-  ReturnType<Awaited<ReturnType<typeof network.connect>>['viem']['getWalletClients']>
->[0];
-
-export const deploy = async (networkConnection: NetworkConnection, deployer: Deployer) => {
+export const deploy = async (networkConnection: NetworkConnection, deployerAddress: Address) => {
+  // @ts-ignore
   const { ignition } = networkConnection;
 
   const { diamondProxy } = await ignition.deploy(DiamondProxyModule, {
-    defaultSender: deployer.account.address,
+    defaultSender: deployerAddress,
     displayUi: true,
   });
   const { counterV1, counterV2 } = await ignition.deploy(CounterVersionsModule, {
-    defaultSender: deployer.account.address,
+    defaultSender: deployerAddress,
     displayUi: true,
   });
   const { erc20 } = await ignition.deploy(ERC20Module, {
-    defaultSender: deployer.account.address,
+    defaultSender: deployerAddress,
     displayUi: true,
   });
 
@@ -45,6 +43,7 @@ const isDirect =
 
 if (isDirect) {
   const networkConnection = await network.connect({ network: 'sepolia' });
+  // @ts-ignore
   const [deployer] = await networkConnection.viem.getWalletClients();
-  deploy(networkConnection, deployer).then(console.log).catch(console.error);
+  deploy(networkConnection, deployer.account.address).then(console.log).catch(console.error);
 }
