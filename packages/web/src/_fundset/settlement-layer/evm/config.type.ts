@@ -17,13 +17,20 @@ type ModulesWithContracts = Extract<
   { contracts: object }
 >;
 
-export type EvmContracts = ModulesWithContracts extends infer M
-  ? M extends { contracts: infer C }
-    ? C extends Array<infer T>
-      ? Omit<T, 'id'>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+  ? I
+  : never;
+
+export type EvmContracts = UnionToIntersection<
+  ModulesWithContracts extends infer M
+    ? M extends { contracts: infer C }
+      ? C extends Array<infer T>
+        ? Omit<T, 'id'>
+        : never
       : never
     : never
-  : never;
+>;
 
 export type EvmAccountAbstractionModule = Extract<
   EvmSettlementLayerConfig['chainConfigs'][number]['modules'][number],

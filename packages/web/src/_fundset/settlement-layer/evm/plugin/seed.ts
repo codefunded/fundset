@@ -58,7 +58,7 @@ export const seed = async (
             },
             {
               blockType: 'evm-token-module',
-              contracts: [{ dividendToken: localhostDeployments.ERC20.contract }],
+              contracts: [{ token: localhostDeployments.ERC20.contract }],
             },
           ],
         },

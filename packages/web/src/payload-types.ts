@@ -346,7 +346,7 @@ export interface FundsetSettlementLayer {
                   }
                 | {
                     contracts: {
-                      dividendToken: string;
+                      token: string;
                       id?: string | null;
                     }[];
                     id?: string | null;
@@ -426,7 +426,7 @@ export interface FundsetSettlementLayerSelect<T extends boolean = true> {
                                 contracts?:
                                   | T
                                   | {
-                                      dividendToken?: T;
+                                      token?: T;
                                       id?: T;
                                     };
                                 id?: T;

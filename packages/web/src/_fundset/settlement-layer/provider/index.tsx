@@ -29,11 +29,11 @@ export const SettlementLayerProvider = async ({
   );
 
   const SettlementLayerProviders = ProviderComponentsWithConfigs.toReversed().reduce(
-    (accP, { ParticularSettlementLayerProvider, config }) => {
+    (renderChildren, { ParticularSettlementLayerProvider, config }) => {
       // eslint-disable-next-line react/display-name
       return ({ children }: { children: React.ReactNode }) => (
         <ParticularSettlementLayerProvider key={config.type} config={config}>
-          {accP({ children })}
+          {renderChildren({ children })}
         </ParticularSettlementLayerProvider>
       );
     },

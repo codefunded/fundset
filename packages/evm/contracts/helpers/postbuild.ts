@@ -2,6 +2,29 @@ import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import hre from 'hardhat';
+import { Abi } from 'viem';
+
+/**
+ * Attaches nonpayable to functions in the ABI that don't have a stateMutability. This is needed for viem typesafety to work.
+ * @param fullPath the path to the ABI file
+ */
+const attachNonPayableToFunctionsAbiInFile = async (fullPath: string) => {
+  const { default: content } = (await import(fullPath)) as { default: Abi };
+  const newContent = content.map(abi => {
+    if (abi.type === 'function' && !abi.stateMutability) {
+      return {
+        ...(abi as unknown as Abi[number]),
+        stateMutability: 'nonpayable',
+      };
+    }
+    return abi;
+  });
+  await fs.writeFile(
+    fullPath,
+    `export default ${JSON.stringify(newContent, null, 2)} as const;`,
+    'utf8',
+  );
+};
 
 /**
  * Generates a barrel file (index.ts) for a given directory, with .js extensions
@@ -33,6 +56,8 @@ async function generateBarrel(dirPath: string) {
       const moduleName = path.basename(file, '.ts');
       // Export with .js extension for ESM
       exports.push(`export { default as ${moduleName} } from './${moduleName}.ts';`);
+
+      await attachNonPayableToFunctionsAbiInFile(fullPath);
     }
   }
 

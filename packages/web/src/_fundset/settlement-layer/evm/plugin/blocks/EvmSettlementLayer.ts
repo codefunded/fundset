@@ -77,7 +77,7 @@ const TokenModule: Block = {
       required: true,
       fields: [
         {
-          name: 'dividendToken',
+          name: 'token',
           type: 'text',
           required: true,
         },
