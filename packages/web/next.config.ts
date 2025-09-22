@@ -14,7 +14,11 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
   },
-
+  webpack: config => {
+    config.resolve.fallback = { fs: false, net: false, tls: false };
+    config.externals.push('pino-pretty', 'encoding');
+    return config;
+  },
   async rewrites() {
     if (process.env.NODE_ENV === 'development') {
       // rewrites to bundler for account abstraction in evm settlement layer due to CORS not being set by the bundler. ONLY IN DEV

@@ -11,6 +11,7 @@ export * from './config.type';
 export * from './connectors/web3auth';
 
 import { createContext, useContext } from 'react';
+import { SimpleKitProvider } from '@/features/auth/evm/components/simplekit';
 
 export const EvmChainConfigsContext = createContext<
   EvmSettlementLayerConfig['chainConfigs'] | null
@@ -92,7 +93,7 @@ const EvmSettlementLayerProvider = ({
   return (
     <WagmiProvider config={wagmiConfig}>
       <EvmChainConfigsProvider config={props.config.chainConfigs}>
-        {children}
+        <SimpleKitProvider>{children}</SimpleKitProvider>
       </EvmChainConfigsProvider>
     </WagmiProvider>
   );
