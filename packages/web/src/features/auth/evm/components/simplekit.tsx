@@ -34,6 +34,7 @@ import {
 import { formatEther } from 'viem';
 import { Check, ChevronDown, ChevronLeft, Copy, RotateCcw } from 'lucide-react';
 import { ChainLogo } from './chain-logos';
+import { useTranslations } from 'next-intl';
 
 const MODAL_CLOSE_DURATION = 320;
 
@@ -121,6 +122,7 @@ function Account() {
   const chains = useChains();
   const selectedChainId = useChainId();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const t = useTranslations('Auth');
 
   const formattedAddress = address?.slice(0, 6) + '•••' + address?.slice(-4);
   const formattedUserBalace = userBalance?.value
@@ -137,7 +139,7 @@ function Account() {
   return (
     <>
       <SimpleKitModalHeader>
-        <SimpleKitModalTitle>Connected</SimpleKitModalTitle>
+        <SimpleKitModalTitle>{t('your_account')}</SimpleKitModalTitle>
         <SimpleKitModalDescription className="sr-only">
           Account modal for your connected Web3 wallet.
         </SimpleKitModalDescription>
@@ -196,7 +198,7 @@ function Account() {
           </div>
 
           <Button className="w-full rounded-xl" onClick={handleDisconnect}>
-            Disconnect
+            {t('disconnect')}
           </Button>
         </div>
       </SimpleKitModalBody>
@@ -206,16 +208,14 @@ function Account() {
 
 function Connectors() {
   const context = React.useContext(SimpleKitContext);
-
+  const t = useTranslations('Auth');
   return (
     <>
       <SimpleKitModalHeader>
         <BackChevron />
-        <SimpleKitModalTitle>
-          {context.pendingConnector?.name ?? 'Connect Wallet'}
-        </SimpleKitModalTitle>
+        <SimpleKitModalTitle>{context.pendingConnector?.name ?? t('login')}</SimpleKitModalTitle>
         <SimpleKitModalDescription className="sr-only">
-          Connect your Web3 wallet or create a new one.
+          {t('login_description')}
         </SimpleKitModalDescription>
       </SimpleKitModalHeader>
       <SimpleKitModalBody>
@@ -230,6 +230,8 @@ function Connectors() {
 
 function WalletConnecting() {
   const context = React.useContext(SimpleKitContext);
+  const t = useTranslations('Errors');
+  const tAuth = useTranslations('Auth');
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-9 md:pt-5">
@@ -246,12 +248,12 @@ function WalletConnecting() {
 
       <div className="space-y-3.5 px-3.5 text-center sm:px-0">
         <h1 className="text-xl font-semibold">
-          {context.isConnectorError ? 'Request Error' : 'Requesting Connection'}
+          {context.isConnectorError ? t('UNKNOWN_ERROR') : tAuth('loading')}
         </h1>
         <p className="text-muted-foreground text-sm text-balance">
           {context.isConnectorError
-            ? 'There was an error with the request. Click above to try again.'
-            : `Open the ${context.pendingConnector?.name} browser extension to connect your wallet.`}
+            ? tAuth('login_error')
+            : tAuth('waiting_for_connector', { connector: context.pendingConnector?.name ?? '' })}
         </p>
       </div>
     </div>
@@ -266,7 +268,7 @@ function WalletOptions() {
     <div className="flex flex-col gap-3.5">
       {connectors.map(connector => (
         <WalletOption
-          key={connector.uid}
+          key={connector.id}
           connector={connector}
           onClick={() => {
             context.setIsConnectorError(false);
@@ -280,21 +282,8 @@ function WalletOptions() {
 }
 
 function WalletOption(props: { connector: Connector; onClick: () => void }) {
-  const [ready, setReady] = React.useState(false);
-
-  React.useEffect(() => {
-    async function checkReady() {
-      const provider = await props.connector.getProvider();
-      setReady(!!provider);
-    }
-    checkReady()
-      .then(() => null)
-      .catch(() => null);
-  }, [props.connector]);
-
   return (
     <Button
-      disabled={!ready}
       onClick={props.onClick}
       size="lg"
       variant="secondary"
@@ -393,7 +382,10 @@ function useConnectors() {
   const context = React.useContext(SimpleKitContext);
   const { connect, connectors } = useConnect({
     mutation: {
-      onError: () => context.setIsConnectorError(true),
+      onError: error => {
+        console.error(error);
+        context.setIsConnectorError(true);
+      },
     },
   });
 
@@ -402,7 +394,6 @@ function useConnectors() {
     let injectedConnector: Connector | undefined;
 
     const formattedConnectors = connectors.reduce((acc: Array<Connector>, curr) => {
-      console.log(curr.id);
       switch (curr.id) {
         case 'metaMaskSDK':
           metaMaskConnector = {

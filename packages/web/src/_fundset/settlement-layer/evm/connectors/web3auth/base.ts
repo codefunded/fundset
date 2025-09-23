@@ -56,7 +56,7 @@ const getWeb3AuthInstance = ({
   return web3AuthInstance;
 };
 
-type Web3AuthNoModalConnectorConfig = {
+export type Web3AuthNoModalConnectorConfig = {
   whiteLabel?: {
     logoLight: string;
     logoDark: string;
@@ -74,6 +74,8 @@ type Web3AuthNoModalConnectorConfig = {
     mfaLevel: MfaLevelType;
   };
 };
+
+const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
 export const createWeb3AuthNoModalConnector = (
   props: Web3AuthInstanceConfig &
@@ -110,10 +112,10 @@ export const createWeb3AuthNoModalConnector = (
   });
   web3AuthInstance.configureAdapter(authAdapter);
 
-  const connector = createWeb3AuthConnector({
+  return createWeb3AuthConnector({
     web3AuthInstance,
     id: `web3auth-${props.loginParams?.loginProvider}`,
-    name: `Web3Auth ${props.loginParams?.loginProvider}`,
+    name: capitalize(props.loginParams?.loginProvider ?? ''),
     loginParams: {
       loginProvider: props.loginParams?.loginProvider ?? 'google',
       curve: 'secp256k1',
@@ -121,6 +123,4 @@ export const createWeb3AuthNoModalConnector = (
     },
     accountAbstractionConfigs: props.accountAbstractionConfigs,
   });
-
-  return connector;
 };

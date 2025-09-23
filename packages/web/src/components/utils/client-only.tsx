@@ -23,9 +23,9 @@ export const createClientOnlyWithLoading = (loading: () => React.ReactNode) =>
 
 export const withClientOnly = (
   Component: React.ComponentType<any>,
-  loading: () => React.ReactNode,
+  loading?: () => React.ReactNode,
 ) => {
-  const ClientOnly = createClientOnlyWithLoading(loading);
+  const ClientOnly = createClientOnlyWithLoading(loading ?? (() => null));
   const WrappedComponent = (props: any) => (
     <ClientOnly>
       <Component {...props} />

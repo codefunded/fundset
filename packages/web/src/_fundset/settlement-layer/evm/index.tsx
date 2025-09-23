@@ -12,6 +12,7 @@ export * from './connectors/web3auth';
 
 import { createContext, useContext } from 'react';
 import { SimpleKitProvider } from '@/features/auth/evm/components/simplekit';
+import { getWeb3AuthConnector } from './connectors/web3auth/providers';
 
 export const EvmChainConfigsContext = createContext<
   EvmSettlementLayerConfig['chainConfigs'] | null
@@ -40,7 +41,7 @@ const EvmSettlementLayerProvider = ({
   children,
   ...props
 }: React.PropsWithChildren<{ config: EvmSettlementLayerConfig }>) => {
-  const wagmiConfig = useMemo(() => {
+  const { wagmiConfig } = useMemo(() => {
     const configChains = props.config.chainConfigs.map(chain =>
       Object.values(chains).find(c => c.id === chain.chainId),
     );
@@ -63,13 +64,33 @@ const EvmSettlementLayerProvider = ({
       {} as Record<number, viem.HttpTransport<undefined, false>>,
     );
 
-    return createConfig({
-      chains: configChains as unknown as readonly [Chain, ...Chain[]],
-      transports,
-      ssr: true,
-      multiInjectedProviderDiscovery: true,
-      pollingInterval: 1000,
-    });
+    const socialConnectors = props.config.chainConfigs.flatMap(
+      chain =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        chain.modules
+          .find(module => module.blockType === 'evm-aa-module')
+          ?.providers.map(({ provider }) =>
+            getWeb3AuthConnector({
+              chains: configChains as unknown as Chain[],
+              chainConfigs: props.config.chainConfigs,
+              selectedChainId: chain.chainId,
+              provider,
+              customRpcUrl: transports?.[chain.chainId]?.({}).value?.url,
+            }),
+          )
+          .filter(Boolean)!,
+    );
+
+    return {
+      wagmiConfig: createConfig({
+        chains: configChains as unknown as readonly [Chain, ...Chain[]],
+        transports,
+        ssr: true,
+        multiInjectedProviderDiscovery: true,
+        pollingInterval: 1000,
+        connectors: [...socialConnectors],
+      }),
+    };
   }, [props.config.chainConfigs]);
 
   useEffect(function hotContractReload() {

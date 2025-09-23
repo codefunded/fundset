@@ -1,21 +1,24 @@
-import type { Config } from 'wagmi';
-
 import type { LOGIN_PROVIDER_TYPE } from '@web3auth/auth-adapter';
 import { createWeb3AuthNoModalConnector } from '../base';
 import type { EvmSettlementLayerConfig } from '../../../config.type';
+import { Chain } from 'wagmi/chains';
 
-export const getWeb3AuthConnector = ({
-  wagmiConfig,
-  chainConfigs,
-  selectedChainId,
-  provider,
-}: {
-  wagmiConfig: Config;
+export type SocialConnectorParams = {
+  chains: Chain[];
   chainConfigs: EvmSettlementLayerConfig['chainConfigs'];
   selectedChainId: number;
   provider: LOGIN_PROVIDER_TYPE;
-}) => {
-  const selectedChain = wagmiConfig.chains.find(chain => chain.id === selectedChainId);
+  customRpcUrl?: string;
+};
+
+export const getWeb3AuthConnector = ({
+  chains,
+  chainConfigs,
+  selectedChainId,
+  provider,
+  customRpcUrl,
+}: SocialConnectorParams) => {
+  const selectedChain = chains.find(chain => chain.id === selectedChainId);
   if (!selectedChain) {
     throw new Error(`Chain ${selectedChainId} not found`);
   }
@@ -51,9 +54,7 @@ export const getWeb3AuthConnector = ({
 
   return createWeb3AuthNoModalConnector({
     chainId: selectedChainId,
-    rpcUrl:
-      wagmiConfig._internal.transports?.[selectedChainId]?.({}).value?.url ||
-      selectedChain.rpcUrls.default.http[0],
+    rpcUrl: customRpcUrl || selectedChain.rpcUrls.default.http[0],
     displayName: selectedChain.name,
     loginParams: { loginProvider: provider, mfaLevel: providerConfig.mfaLevel },
     accountAbstractionConfigs,

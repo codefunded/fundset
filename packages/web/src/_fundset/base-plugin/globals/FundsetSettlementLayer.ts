@@ -1,4 +1,3 @@
-import { revalidateTag } from 'next/cache';
 import type { GlobalConfig } from 'payload';
 
 export const FundsetSettlementLayer: GlobalConfig = {
@@ -10,11 +9,4 @@ export const FundsetSettlementLayer: GlobalConfig = {
       blocks: [],
     },
   ],
-  hooks: {
-    afterChange: [
-      async () => {
-        revalidateTag('settlement-layer-config');
-      },
-    ],
-  },
 };

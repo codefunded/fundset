@@ -52,7 +52,10 @@ declare const messages: {
     "dont_have_account": "Don't have an account?",
     "signup": "Sign up",
     "loading": "Loading...",
-    "disconnect": "Disconnect"
+    "disconnect": "Disconnect",
+    "your_account": "Your account",
+    "login_error": "There was an error with the connection request. Click above to try again.",
+    "waiting_for_connector": "Waiting for {connector} to connect your wallet..."
   }
 };
 export default messages;

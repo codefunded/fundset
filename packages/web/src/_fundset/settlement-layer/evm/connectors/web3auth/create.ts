@@ -16,6 +16,7 @@ import { type Web3AuthConnectorParams } from '@web3auth/web3auth-wagmi-connector
 import { entryPoint07Address } from 'viem/account-abstraction';
 import { createPimlicoClient } from 'permissionless/clients/pimlico';
 import type { EvmAccountAbstractionModule } from '../../config.type';
+import { Web3AuthNoModalConnectorConfig } from './base';
 
 type SmartAccountConnector = ReturnType<
   Parameters<typeof createConnector<SmartAccountClient>>[0]
@@ -24,12 +25,20 @@ type SmartAccountConnector = ReturnType<
   getSmartAccountProvider: (eoaProvider: IProvider) => Promise<SmartAccountClient>;
 };
 
+const isConnecting = new Map<string, boolean>();
+// this is used to not initialize the login popup immediately when the connector is created,
+// because wagmi config tries to call getProvider on all connectors
+const isConnected = new Map<string, boolean>();
+
 export const createWeb3AuthConnector = (
   parameters: Web3AuthConnectorParams & {
     accountAbstractionConfigs: (EvmAccountAbstractionModule & { chainId: number })[];
+    icon?: string;
+    whiteLabel?: Web3AuthNoModalConnectorConfig['whiteLabel'];
   },
 ) => {
-  const { web3AuthInstance, loginParams, id, name, type, accountAbstractionConfigs } = parameters;
+  const { web3AuthInstance, loginParams, id, name, type, accountAbstractionConfigs, icon } =
+    parameters;
 
   let eoaWalletProvider: IProvider | null = null;
   let smartAccountProvider: SmartAccountClient | null = null;
@@ -38,7 +47,12 @@ export const createWeb3AuthConnector = (
     id: id || 'web3auth',
     name: name || 'Web3Auth',
     type: type || 'Web3Auth',
+    icon,
     async connect({ chainId } = {}) {
+      if (isConnecting.get(id!)) {
+        throw new Error('Already connecting');
+      }
+      isConnecting.set(id!, true);
       try {
         config.emitter.emit('message', {
           type: 'connecting',
@@ -71,12 +85,14 @@ export const createWeb3AuthConnector = (
         }
 
         const accounts = await this.getAccounts();
-
+        isConnected.set(id!, true);
         return { accounts, chainId: currentChainId };
       } catch (error) {
         console.error('error while connecting', error);
         this.onDisconnect();
         throw new UserRejectedRequestError('Something went wrong' as unknown as Error);
+      } finally {
+        isConnecting.set(id!, false);
       }
     },
     async getAccounts() {
@@ -94,9 +110,12 @@ export const createWeb3AuthConnector = (
       return Number(chainId);
     },
     async getProvider(): Promise<SmartAccountClient> {
-      return (this as SmartAccountConnector).getSmartAccountProvider(
-        await (this as SmartAccountConnector).getEoaProvider(),
-      );
+      if (isConnected.get(id!)) {
+        return (this as SmartAccountConnector).getSmartAccountProvider(
+          await (this as SmartAccountConnector).getEoaProvider(),
+        );
+      }
+      return undefined as unknown as SmartAccountClient;
     },
     async getClient() {
       return this.getProvider();
@@ -215,6 +234,7 @@ export const createWeb3AuthConnector = (
       }
     },
     async disconnect(): Promise<void> {
+      isConnected.set(id!, false);
       await web3AuthInstance.logout();
       const provider = await (this as SmartAccountConnector).getEoaProvider();
       provider.removeListener('accountsChanged', this.onAccountsChanged);

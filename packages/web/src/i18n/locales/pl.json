@@ -49,6 +49,9 @@
     "dont_have_account": "Nie masz jeszcze konta?",
     "signup": "Zarejestruj się",
     "loading": "Ładowanie...",
-    "disconnect": "Wyloguj się"
+    "disconnect": "Wyloguj się",
+    "your_account": "Twoje konto",
+    "login_error": "Wystąpił błąd podczas żądania połączenia. Kliknij powyżej, aby spróbować ponownie.",
+    "waiting_for_connector": "Czekam na {connector} by połączyć Twój portfel..."
   }
 }

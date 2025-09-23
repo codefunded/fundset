@@ -9,6 +9,7 @@ import {
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { useEffect, useLayoutEffect } from 'react';
 import { useAccountEffect, useChainId, useConfig, useConnect } from 'wagmi';
+import { Chain } from 'wagmi/chains';
 
 const useConnections = () => {
   const CURRENT_VERSION = 1;
@@ -135,7 +136,8 @@ export const useReconnectWeb3Auth = () => {
 
       connect({
         connector: getWeb3AuthConnector({
-          wagmiConfig: config,
+          chains: config.chains as unknown as Chain[],
+          customRpcUrl: config._internal.transports?.[chainId]?.({}).value?.url,
           chainConfigs,
           selectedChainId: chainId,
           provider: lastProvider,
