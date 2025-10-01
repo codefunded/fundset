@@ -10,13 +10,13 @@ import {
 import './modules';
 
 DiamondProxy.DiamondCut.handler(async ({ event, context }) => {
-  for (const facetCut of event.params._0) {
+  for (const facetCut of event.params.facetCuts) {
     const [facetAddress, action, functionSelectors] = facetCut;
     const entity: DiamondProxy_DiamondCut = {
       id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
       diamondAction: action,
-      init: event.params._1,
-      calldata: event.params._2,
+      init: event.params.data,
+      calldata: event.params.data,
       facetAddress: facetAddress.toString(),
       functionSelectors: functionSelectors.map(selector => selector.toString()),
     };
@@ -27,8 +27,8 @@ DiamondProxy.DiamondCut.handler(async ({ event, context }) => {
 DiamondProxy.OwnershipTransferred.handler(async ({ event, context }) => {
   const entity: DiamondProxy_OwnershipTransferred = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    newOwner: event.params._0,
-    previousOwner: event.params._1,
+    newOwner: event.params.newOwner,
+    previousOwner: event.params.previousOwner,
   };
   context.DiamondProxy_OwnershipTransferred.set(entity);
 });

@@ -8,10 +8,11 @@
     "mocha": "ts-mocha test/**/*.ts",
     "codegen": "envio codegen",
     "predev": "pnpx tsx generate-config.ts",
-    "dev": "envio stop && envio dev",
+    "dev": "nodemon --watch . --ignore node_modules --ignore generated/node_modules --ext ts,tsx,js,json,graphql,yaml,yml,env,sol --signal SIGTERM --exec \"pnpm run dev:once\"",
+    "dev:once": "envio stop && envio dev",
     "stop": "envio stop",
+    "start": "envio start",
     "test": "pnpm mocha",
-    "start": "ts-node generated/src/Index.bs.js",
     "postinstall": "pnpx tsx postinstall.ts"
   },
   "devDependencies": {
@@ -19,15 +20,14 @@
     "@types/chai": "^4.3.11",
     "@types/mocha": "10.0.6",
     "@types/node": "20.8.8",
+    "ts-mocha": "^10.0.0",
+    "typescript": "5.2.2",
     "chai": "4.3.10",
     "mocha": "10.2.0",
-    "ts-mocha": "^10.0.0",
-    "ts-node": "10.9.1",
-    "typescript": "5.2.2"
+    "nodemon": "^3.1.0"
   },
   "dependencies": {
-    "envio": "2.21.5",
-    "viem": "^2.31.2"
+    "envio": "2.29.1"
   },
   "optionalDependencies": {
     "generated": "./generated"

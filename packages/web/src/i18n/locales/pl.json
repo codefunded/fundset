@@ -10,7 +10,13 @@
     "balance": "Saldo: {balance}",
     "disconnect": "Wyloguj",
     "sign_in": "Zaloguj się",
-    "sign_up": "Zarejestruj się"
+    "sign_up": "Zarejestruj się",
+    "increment_history": "Historia dodawania",
+    "recent_increment_history": "Ostatnie pomyślne dodawania",
+    "no_increment_history_available": "Brak historii dodawania",
+    "page": "Strona",
+    "previous": "Poprzednia",
+    "next": "Następna"
   },
   "Languages": {
     "EN": "Angielski",

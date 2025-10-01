@@ -162,15 +162,16 @@ export const buildCounterModule = ({
 }): CounterModule => {
   return {
     isIncrementGlobalCounterReady: true,
-    incrementGlobalCounterMutationOptions: oRPCQueryUtils.globalCounter.increment.mutationOptions({
-      meta: {
-        invalidatesQuery: oRPCQueryUtils.globalCounter.get.queryOptions().queryKey,
-      },
-    }),
-    globalCounterValueQueryOptions: oRPCQueryUtils.globalCounter.get.queryOptions(),
+    incrementGlobalCounterMutationOptions: () =>
+      oRPCQueryUtils.globalCounter.increment.mutationOptions({
+        meta: {
+          invalidatesQuery: oRPCQueryUtils.globalCounter.get.queryOptions().queryKey,
+        },
+      }),
+    globalCounterValueQueryOptions: () => oRPCQueryUtils.globalCounter.get.queryOptions(),
 
     isIncrementPersonalCounterReady: true,
-    incrementPersonalCounterMutationOptions:
+    incrementPersonalCounterMutationOptions: () =>
       oRPCQueryUtils.personalCounter.increment.mutationOptions({
         meta: {
           invalidatesQuery: oRPCQueryUtils.personalCounter.get.queryOptions({
@@ -180,11 +181,12 @@ export const buildCounterModule = ({
           }).queryKey,
         },
       }),
-    personalCounterValueQueryOptions: oRPCQueryUtils.personalCounter.get.queryOptions({
-      input: {
-        userId: session?.user.id,
-      },
-    }),
+    personalCounterValueQueryOptions: () =>
+      oRPCQueryUtils.personalCounter.get.queryOptions({
+        input: {
+          userId: session?.user.id,
+        },
+      }),
   };
 };
 ```
@@ -223,9 +225,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSettlementLayer } from '@/_fundset/settlement-layer';
 
 export default function Home() {
-  const { incrementGlobalCounterMutationOptions, globalCounterValueQueryOptions } = useSettlementLayer();
-  const { data: globalCounterValue } = useQuery(globalCounterValueQueryOptions);
-  const { mutate: incrementGlobalCounter } = useMutation(incrementGlobalCounterMutationOptions);
+  const { counter: { incrementGlobalCounterMutationOptions, globalCounterValueQueryOptions } } = useSettlementLayer();
+  const { data: globalCounterValue } = useQuery(globalCounterValueQueryOptions());
+  const { mutate: incrementGlobalCounter } = useMutation(incrementGlobalCounterMutationOptions());
 
   return (
     <>

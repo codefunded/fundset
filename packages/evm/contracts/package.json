@@ -15,7 +15,7 @@
     "test:node": "hardhat test node",
     "check-types": "tsc --noEmit",
     "predev": "pnpm build && rm -f localhost_deployed_contracts.json",
-    "dev": "pnpm build && pnpx concurrently \"anvil\" \"pnpx tsx helpers/dev-deploy.ts\" \"pnpx tsx helpers/utils/hot-contract-reload/server.ts\" \"pnpx tsx helpers/utils/hot-contract-reload/hcr.ts\""
+    "dev": "pnpm build && pnpx concurrently \"anvil --prune-history\" \"pnpx tsx helpers/dev-deploy.ts\" \"pnpx tsx helpers/utils/hot-contract-reload/server.ts\" \"pnpx tsx helpers/utils/hot-contract-reload/hcr.ts\""
   },
   "dependencies": {
     "@account-abstraction/contracts": "0.7.0",

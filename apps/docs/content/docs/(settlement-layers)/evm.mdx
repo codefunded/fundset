@@ -101,6 +101,155 @@ Each module might need to index events from the blockchain so in order to add a 
 Envio indexer requires a yaml [config](https://docs.envio.dev/docs/HyperIndex/configuration-file) file to know which events on which contracts to index. By default, the dev deployment script generates a config with all the events on all the contracts that are returned from the deployment script.
 But you have to add the logic for indexing events in the `packages/evm/indexer/src/EventHandlers.ts` file by yourself. Check out the [Event Handlers docs](https://docs.envio.dev/docs/HyperIndex/event-handlers) to learn how to do it.
 
+#### Querying the Indexer from Frontend
+
+Fundset uses [gql.tada](https://gql-tada.0no.co/) for type-safe GraphQL queries and [graphql-request](https://github.com/jasonkuhrt/graphql-request) to communicate with the Envio indexer.
+
+##### Setup
+
+The GraphQL schema is configured in `tsconfig.json`:
+
+```json title="packages/web/tsconfig.json"
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "http://localhost:8080/v1/graphql",
+        "tadaOutputLocation": "./src/graphql-env.d.ts"
+      }
+    ]
+  }
+}
+```
+
+To generate TypeScript types from your indexer's GraphQL schema, run:
+
+```bash
+pnpm generate:schema
+```
+
+This generates `graphql-env.d.ts` with full type definitions from your indexer.
+
+##### Writing Queries
+
+Use `gql.tada` to write type-safe GraphQL queries. The `graphql` function provides full IntelliSense and type checking:
+
+```ts title="_fundset/settlement-layer/evm/modules/counter/index.ts"
+import { graphql } from 'gql.tada';
+import { request } from 'graphql-request';
+import { evmSettlementLayerEnv } from '../../env';
+
+globalCounterIncrementEventsQueryOptions: ({ limit, offset }) => ({
+  queryKey: [
+    'global-counter-increment-events',
+    evmModule.proxyAddress,
+    chain.id,
+    limit,
+    offset,
+  ],
+  queryFn: async () => {
+    const globalCounterIncrementEventsQuery = graphql(`
+      query GlobalCounterIncrementEvents($limit: Int!, $offset: Int!) {
+        Counter_IncrementBy(limit: $limit, offset: $offset) {
+          amount
+          by
+          id
+          timestamp
+        }
+      }
+    `);
+    const globalCounterIncrementEvents = await request(
+      evmSettlementLayerEnv().NEXT_PUBLIC_INDEXER_URL,
+      globalCounterIncrementEventsQuery,
+      { limit, offset },
+    );
+    return globalCounterIncrementEvents.Counter_IncrementBy.map(event => ({
+      ...event,
+      timestamp: new Date(Number(event.timestamp)),
+    }));
+  },
+}),
+```
+
+The query names (like `Counter_IncrementBy`) are automatically generated from your indexer schema and correspond to the entities/events you defined.
+
+##### Using in React Components
+
+Query options returned from modules integrate seamlessly with TanStack Query:
+
+```tsx title="features/counter/IncrementHistory.tsx"
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useSettlementLayer } from '@/_fundset/settlement-layer';
+
+export const IncrementHistory = () => {
+  const {
+    counter: { globalCounterIncrementEventsQueryOptions },
+  } = useSettlementLayer();
+
+  const [offset, setOffset] = useState(0);
+  const limit = 3;
+
+  const {
+    data: events = [],
+    isLoading,
+    isFetching,
+  } = useQuery({
+    ...globalCounterIncrementEventsQueryOptions({ limit, offset }),
+    placeholderData: keepPreviousData,
+  });
+
+  return (
+    <div>
+      {events.map(event => (
+        <div key={event.id}>
+          <p>Incremented by: {event.by}</p>
+          <p>New amount: {event.amount}</p>
+          <p>Time: {event.timestamp.toLocaleString()}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+```
+
+##### Waiting for Indexing
+
+After submitting a transaction, you may want to wait for it to be indexed before refetching queries. Use the `waitForTransactionToBeIndexed` helper:
+
+```ts title="_fundset/settlement-layer/evm/modules/counter/index.ts"
+import { waitForTransactionToBeIndexed } from '../../helpers';
+
+incrementGlobalCounterMutationOptions: () => ({
+  mutationFn: async (amount: number) => {
+    const hash = await writeContract(config, {
+      // ... contract write options
+    });
+
+    await waitForTransactionReceipt(config, { hash });
+
+    // Wait for indexer to process the transaction
+    await waitForTransactionToBeIndexed(hash);
+  },
+  meta: {
+    // Invalidate queries after successful mutation
+    invalidatesQueries: [
+      ['global-counter-increment-events', evmModule.proxyAddress, chain.id],
+    ],
+  },
+}),
+```
+
+The `waitForTransactionToBeIndexed` function polls the indexer's `raw_events` table to check if your transaction has been processed.
+
+##### Best Practices
+
+1. **Query Keys**: Include all variables that affect the query result in your query key (contract address, chain ID, pagination params)
+2. **Type Safety**: Let `gql.tada` infer types - avoid manual type annotations
+3. **Data Transformation**: Transform indexer data (like converting timestamps to Date objects) in the `queryFn`
+4. **Query Invalidation**: Use `meta.invalidatesQueries` to automatically refetch data after mutations
+5. **Environment Variables**: Store the indexer URL in `NEXT_PUBLIC_INDEXER_URL` environment variable
+
 ## Deployment
 
 For EVM settlement layer to work, you need:
@@ -222,6 +371,7 @@ This is a step by step guide on how to deploy an app with the evm settlement lay
    - `PAYLOAD_SECRET` - a random string
    - `NEXT_PUBLIC_WEB3AUTH_CLIENT_ID` - your web3auth client id (optional, needed for AA)
    - `NEXT_PUBLIC_APP_URL` - URL of your fundset app (e.g. `https://<your-app-name>.vercel.app`)
+   - `NEXT_PUBLIC_INDEXER_URL` - URL of your indexer (e.g. `http://localhost:8080/v1/graphql`)
 7. Deploy your Vercel project.
 8. Go to `/admin` page and create a new admin user and log in.
 9. In the admin dashboard, go to `Fundset Settlement Layer` Global and add a settlement layer config for EVM with RPC URLs for each supported chain and modules with contract addresses that you deployed before.

@@ -16,21 +16,27 @@ Each module is split into the interface declaration and the implementation. So e
 ```ts
 import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyReturnValue = any;
-
 declare module 'fundset/settlement-layer' {
   export interface SettlementLayer {
-    isIncrementGlobalCounterReady: boolean;
-    incrementGlobalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
-    globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+    counter: {
+      isIncrementGlobalCounterReady: boolean;
+      incrementGlobalCounterMutationOptions: UseMutationOptions<void, Error, number>;
+      globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
 
-    isIncrementPersonalCounterReady: boolean;
-    incrementPersonalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
-    personalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+      isIncrementPersonalCounterReady: boolean;
+      incrementPersonalCounterMutationOptions: UseMutationOptions<void, Error, number>;
+      personalCounterValueQueryOptions: UseQueryOptions<
+        unknown,
+        Error,
+        number | undefined,
+        QueryKey
+      >;
+    };
   }
 }
 ```
+
+For organisation purposes, you can also group the module functions into a single object. In the example above, we're grouping the counter functions into a single object called `counter`.
 
 2. **Implementation files**: each module also has an implementation that is tied to a specific settlement layer. It is located in the `_fundset/settlement-layer/<settlement-layer-name>/modules/<module-name>` directory.
 
@@ -80,5 +86,7 @@ export default usePgSettlementLayer;
 After that you should be able to use the module in your application code by using the `useSettlementLayer` hook:
 
 ```ts
-const { incrementGlobalCounterMutationOptions } = useSettlementLayer();
+const {
+  counter: { incrementGlobalCounterMutationOptions },
+} = useSettlementLayer();
 ```

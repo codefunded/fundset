@@ -1,5 +1,5 @@
 {
-  "id": "48e0b87b-fc45-407a-aad5-705d81bbe3b5",
+  "id": "d668c966-3cc7-4c5d-9ea6-3b4e77851067",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -33,12 +33,30 @@
       "name": "global_counter",
       "schema": "",
       "columns": {
-        "value": {
-          "name": "value",
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "by": {
+          "name": "by",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "default": 0
+          "notNull": true
+        },
+        "currentGlobalValue": {
+          "name": "currentGlobalValue",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},

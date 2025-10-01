@@ -1,6 +1,7 @@
 packages:
   - packages/**
   - apps/**
+  - '!packages/evm/indexer/generated/**'
 onlyBuiltDependencies:
   - '@apollo/protobufjs'
   - '@posthog/cli'

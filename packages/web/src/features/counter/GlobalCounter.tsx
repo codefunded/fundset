@@ -13,18 +13,20 @@ export const GlobalCounter = () => {
   const tErrors = useTranslations('Errors');
 
   const {
-    isIncrementGlobalCounterReady,
-    incrementGlobalCounterMutationOptions,
-    globalCounterValueQueryOptions,
+    counter: {
+      incrementGlobalCounterMutationOptions,
+      globalCounterValueQueryOptions,
+      isIncrementGlobalCounterReady,
+    },
   } = useSettlementLayer();
-  const { data: counterValue, isLoading } = useQuery(globalCounterValueQueryOptions);
+  const { data: counterValue, isLoading } = useQuery(globalCounterValueQueryOptions());
   const {
     mutateAsync: incrementCounter,
     isSuccess,
     isPending,
     error,
     isError,
-  } = useMutation(incrementGlobalCounterMutationOptions);
+  } = useMutation(incrementGlobalCounterMutationOptions());
 
   const [incrementAmount, setIncrementAmount] = useState(1);
 

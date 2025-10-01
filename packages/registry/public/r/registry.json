@@ -260,6 +260,12 @@
           "target": "~/packages/web/src/_fundset/settlement-layer/evm/config.type.ts"
         },
         {
+          "name": "helpers",
+          "path": "../web/src/_fundset/settlement-layer/evm/helpers.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/helpers.ts"
+        },
+        {
           "name": "plugin-index",
           "path": "../web/src/_fundset/settlement-layer/evm/plugin/index.ts",
           "type": "registry:file",
@@ -330,6 +336,30 @@
           "path": "../web/src/features/auth/evm/useReconnectWeb3Auth.ts",
           "type": "registry:file",
           "target": "~/packages/web/src/features/auth/evm/useReconnectWeb3Auth.ts"
+        },
+        {
+          "name": "auth-evm-use-switch-chain-if-selected-is-not-configured",
+          "path": "../web/src/features/auth/evm/useSwitchChainIfSelectedIsNotConfigured.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/useSwitchChainIfSelectedIsNotConfigured.ts"
+        },
+        {
+          "name": "auth-evm-components-simplekit",
+          "path": "../web/src/features/auth/evm/components/simplekit.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/components/simplekit.tsx"
+        },
+        {
+          "name": "auth-evm-components-simplekit-modal",
+          "path": "../web/src/features/auth/evm/components/simplekit-modal.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/components/simplekit-modal.tsx"
+        },
+        {
+          "name": "auth-evm-components-chain-logos",
+          "path": "../web/src/features/auth/evm/components/chain-logos.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/features/auth/evm/components/chain-logos.tsx"
         },
         {
           "name": "indexer-event-handlers",

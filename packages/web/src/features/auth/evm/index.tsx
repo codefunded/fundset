@@ -1,9 +1,10 @@
 'use client';
 
-import { useReconnectWeb3Auth } from './useReconnectWeb3Auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { withClientOnly } from '@/components/utils/client-only';
 import { ConnectWalletButton } from './components/simplekit';
+import { useReconnectWeb3Auth } from './useReconnectWeb3Auth';
+import { useSwitchChainIfSelectedIsNotConfigured } from './useSwitchChainIfSelectedIsNotConfigured';
 
 const EvmAuthComponentSkeleton = () => (
   <div className="flex flex-col items-center gap-2">
@@ -14,6 +15,7 @@ const EvmAuthComponentSkeleton = () => (
 const EvmAuthComponent = withClientOnly(
   () => {
     useReconnectWeb3Auth();
+    useSwitchChainIfSelectedIsNotConfigured();
 
     return <ConnectWalletButton />;
   },

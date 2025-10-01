@@ -13,7 +13,13 @@ declare const messages: {
     "balance": "Balance: {balance}",
     "disconnect": "Log out",
     "sign_in": "Sign In",
-    "sign_up": "Sign Up"
+    "sign_up": "Sign Up",
+    "increment_history": "Increment History",
+    "recent_increment_history": "Recent successful increments",
+    "no_increment_history_available": "No increment history available",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
   },
   "Languages": {
     "EN": "English",

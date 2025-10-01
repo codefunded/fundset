@@ -1,4 +1,4 @@
-import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const countersTable = pgTable('counters', {
   userId: varchar({ length: 255 }).notNull().primaryKey(),
@@ -6,5 +6,8 @@ export const countersTable = pgTable('counters', {
 });
 
 export const globalCounterTable = pgTable('global_counter', {
-  value: integer().notNull().default(0),
+  id: serial('id').primaryKey(),
+  by: integer().notNull(),
+  currentGlobalValue: integer().notNull(),
+  createdAt: timestamp().defaultNow(),
 });

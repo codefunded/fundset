@@ -8,7 +8,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "generate:schema": "gql-tada generate output"
   },
   "dependencies": {
     "@orpc/client": "^1.7.5",
@@ -41,6 +42,9 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.3",
+    "gql.tada": "^1.8.13",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "lucide-react": "^0.511.0",
     "motion": "^12.23.12",
     "next": "15.5.3",

@@ -1,16 +1,39 @@
 import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyReturnValue = any;
+export type GlobalCounterIncrementEvent = {
+  amount: number;
+  timestamp: Date;
+  by: number;
+  id: string;
+};
 
 export interface CounterModule {
-  isIncrementGlobalCounterReady: boolean;
-  incrementGlobalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
-  globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+  counter: {
+    isIncrementGlobalCounterReady: boolean;
+    incrementGlobalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;
+    globalCounterValueQueryOptions: () => UseQueryOptions<
+      unknown,
+      Error,
+      number | undefined,
+      QueryKey
+    >;
+    globalCounterIncrementEventsQueryOptions: ({
+      limit,
+      offset,
+    }: {
+      limit: number;
+      offset: number;
+    }) => UseQueryOptions<unknown, Error, GlobalCounterIncrementEvent[], QueryKey>;
 
-  isIncrementPersonalCounterReady: boolean;
-  incrementPersonalCounterMutationOptions: UseMutationOptions<AnyReturnValue, Error, number>;
-  personalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+    isIncrementPersonalCounterReady: boolean;
+    incrementPersonalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;
+    personalCounterValueQueryOptions: () => UseQueryOptions<
+      unknown,
+      Error,
+      number | undefined,
+      QueryKey
+    >;
+  };
 }
 
 declare module 'fundset/settlement-layer' {

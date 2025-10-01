@@ -10,6 +10,25 @@ import * as viem from 'viem';
 import { hardhat } from 'viem/chains';
 import { Abi } from 'viem';
 
+const formatEventSignatureWithIndexedClause = (abi: viem.AbiItem) => {
+  if (abi.type !== 'event') {
+    throw new Error('Abi is not an event');
+  }
+
+  const inputs = abi.inputs.map(input => {
+    if (input.type === 'tuple[]' || input.type === 'tuple') {
+      type Input = { components: { type: string; name: string }[] };
+      return `(${(input as unknown as Input)?.components?.map(component => component.type).join(', ')})[]${input.name ? ` ${input.name}` : ''}`;
+    }
+
+    return input.indexed
+      ? `${input.type} indexed${input.name ? ` ${input.name}` : ''}`
+      : `${input.type}${input.name ? ` ${input.name}` : ''}`;
+  });
+
+  return `${abi.name}(${inputs.join(', ')})`;
+};
+
 async function waitForNetworkToBeReady(client: viem.PublicClient) {
   while (true) {
     try {
@@ -34,8 +53,8 @@ const getDeployedContracts = async () => {
         '../contracts/localhost_deployed_contracts.json'
       ).then(res => res.default)) as DeployedContracts;
       return contracts;
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.log('Waiting for contracts to be deployed...');
       await setTimeout(1000);
     }
   }
@@ -57,14 +76,14 @@ const generateConfigFile = async (contracts: DeployedContracts) => {
       events: contractData.abi
         .filter(abi => abi.type === 'event')
         .map(abi => ({
-          event: viem.toEventSignature(abi),
+          event: formatEventSignatureWithIndexedClause(abi),
         }))
         .concat(
           contractData.facets.flatMap(facet =>
             facet.abi
               .filter(abi => abi.type === 'event')
               .map(abi => ({
-                event: viem.toEventSignature(abi),
+                event: formatEventSignatureWithIndexedClause(abi),
               })),
           ),
         ),

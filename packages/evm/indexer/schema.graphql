@@ -1,12 +1,14 @@
 type Counter_Increment {
   id: ID!
-  by: BigInt!
+  newAmount: BigInt!
+  timestamp: BigInt!
 }
 
 type Counter_IncrementBy {
   id: ID!
   by: BigInt!
   amount: BigInt!
+  timestamp: BigInt!
 }
 
 type DiamondProxy_DiamondCut {

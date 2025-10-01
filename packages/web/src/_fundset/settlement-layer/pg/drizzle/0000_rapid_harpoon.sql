@@ -4,7 +4,10 @@ CREATE TABLE "counters" (
 );
 --> statement-breakpoint
 CREATE TABLE "global_counter" (
-	"value" integer DEFAULT 0 NOT NULL
+	"id" serial PRIMARY KEY NOT NULL,
+	"by" integer NOT NULL,
+	"currentGlobalValue" integer NOT NULL,
+	"createdAt" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "account" (

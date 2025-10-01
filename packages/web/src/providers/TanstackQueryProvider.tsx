@@ -6,7 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 declare module '@tanstack/react-query' {
   interface Register {
     mutationMeta: {
-      invalidatesQuery: QueryKey;
+      invalidatesQueries: QueryKey;
     };
   }
 }
@@ -14,8 +14,10 @@ declare module '@tanstack/react-query' {
 export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     async onSettled(_data, _error, _variables, _context, mutation) {
-      if (mutation.meta?.invalidatesQuery) {
-        await queryClient.invalidateQueries({ queryKey: mutation.meta.invalidatesQuery });
+      if (mutation.meta?.invalidatesQueries) {
+        for (const queryKey of mutation.meta.invalidatesQueries) {
+          await queryClient.invalidateQueries({ queryKey: queryKey as QueryKey });
+        }
       }
     },
   }),

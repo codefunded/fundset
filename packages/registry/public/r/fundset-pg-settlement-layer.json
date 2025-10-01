@@ -22,7 +22,7 @@
     },
     {
       "path": "../web/src/_fundset/settlement-layer/pg/db-schema.ts",
-      "content": "import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';\n\nexport const countersTable = pgTable('counters', {\n  userId: varchar({ length: 255 }).notNull().primaryKey(),\n  value: integer().notNull(),\n});\n\nexport const globalCounterTable = pgTable('global_counter', {\n  value: integer().notNull().default(0),\n});\n",
+      "content": "import { integer, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';\n\nexport const countersTable = pgTable('counters', {\n  userId: varchar({ length: 255 }).notNull().primaryKey(),\n  value: integer().notNull(),\n});\n\nexport const globalCounterTable = pgTable('global_counter', {\n  id: serial('id').primaryKey(),\n  by: integer().notNull(),\n  currentGlobalValue: integer().notNull(),\n  createdAt: timestamp().defaultNow(),\n});\n",
       "type": "registry:file",
       "target": "~/packages/web/src/_fundset/settlement-layer/pg/db-schema.ts"
     },
