@@ -1,7 +1,7 @@
 import chokidar from 'chokidar';
 import { network } from 'hardhat';
 import { deploy } from '../../../deploy/produciton.ts';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { serializeContractDeploymentResult } from '../serialize-contract-deployment-result.ts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -26,6 +26,15 @@ async function reload() {
   const { viem } = networkConnection;
   const [deployer] = await viem.getWalletClients();
   const result = await deploy(networkConnection, deployer.account.address);
+  const serializedContracts = serializeContractDeploymentResult(result);
+  await fs.writeFile(
+    path.resolve(import.meta.dirname, '../../../localhost_deployed_contracts.json'),
+    JSON.stringify(serializedContracts, null, 2),
+  );
+  spawn('pnpm', ['run', 'predev'], {
+    stdio: 'inherit',
+    cwd: path.resolve(import.meta.dirname, '../../../../indexer'),
+  });
   console.log(`[HCR] Redeploying done`);
   console.log(`[HCR] Sending new data to seed the database`);
   await fetch('http://localhost:3000/api/evm/hot-contract-reload', {
@@ -33,7 +42,7 @@ async function reload() {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(serializeContractDeploymentResult(result)),
+    body: JSON.stringify(serializedContracts),
   });
   console.log(`[HCR] Sending reload message to server`);
   await fetch('http://localhost:9999');

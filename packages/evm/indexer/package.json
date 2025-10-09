@@ -8,7 +8,7 @@
     "mocha": "ts-mocha test/**/*.ts",
     "codegen": "envio codegen",
     "predev": "pnpx tsx generate-config.ts",
-    "dev": "nodemon --watch . --ignore node_modules --ignore generated/node_modules --ext ts,tsx,js,json,graphql,yaml,yml,env,sol --signal SIGTERM --exec \"pnpm run dev:once\"",
+    "dev": "nodemon --watch . --ignore node_modules --ignore generated/node_modules --ext ts,tsx,js,json,graphql,env,sol --signal SIGTERM --exec \"pnpm run dev:once\"",
     "dev:once": "envio stop && envio dev",
     "stop": "envio stop",
     "start": "envio start",
@@ -27,7 +27,7 @@
     "nodemon": "^3.1.0"
   },
   "dependencies": {
-    "envio": "2.29.1"
+    "envio": "2.30.1"
   },
   "optionalDependencies": {
     "generated": "./generated"
