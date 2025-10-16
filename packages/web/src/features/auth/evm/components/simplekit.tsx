@@ -35,12 +35,18 @@ import { formatEther } from 'viem';
 import { Check, ChevronDown, ChevronLeft, Copy, RotateCcw } from 'lucide-react';
 import { ChainLogo } from './chain-logos';
 import { useTranslations } from 'next-intl';
+import { useEvmChainConfigs } from '@/_fundset/settlement-layer/evm';
+import { useWeb3AuthConnect } from '@web3auth/modal/react';
+import { WALLET_CONNECTORS } from '@web3auth/modal';
+import { authConnectionToIcon } from '@/_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA';
 
 const MODAL_CLOSE_DURATION = 320;
 
 const SimpleKitContext = React.createContext<{
-  pendingConnector: Connector | null;
-  setPendingConnector: React.Dispatch<React.SetStateAction<Connector | null>>;
+  pendingConnector: Pick<Connector, 'name' | 'icon'> | null;
+  setPendingConnector: React.Dispatch<
+    React.SetStateAction<Pick<Connector, 'name' | 'icon'> | null>
+  >;
   isConnectorError: boolean;
   setIsConnectorError: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
@@ -56,7 +62,10 @@ const SimpleKitContext = React.createContext<{
 
 function SimpleKitProvider(props: { children: React.ReactNode }) {
   const { status, address } = useAccount();
-  const [pendingConnector, setPendingConnector] = React.useState<Connector | null>(null);
+  const [pendingConnector, setPendingConnector] = React.useState<Pick<
+    Connector,
+    'name' | 'icon'
+  > | null>(null);
   const [isConnectorError, setIsConnectorError] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   const isConnected = address && !pendingConnector;
@@ -98,6 +107,7 @@ function ConnectWalletButton() {
   const { address } = useAccount();
   const { data: ensName } = useEnsName({ address });
   const { data: ensAvatar } = useEnsAvatar({ name: ensName! });
+  const t = useTranslations('Auth');
 
   return (
     <Button onClick={simplekit.toggleModal} className="rounded-xl">
@@ -107,7 +117,7 @@ function ConnectWalletButton() {
           {address && <span>{ensName ? `${ensName}` : simplekit.formattedAddress}</span>}
         </>
       ) : (
-        'Connect Wallet'
+        t('login')
       )}
     </Button>
   );
@@ -260,9 +270,36 @@ function WalletConnecting() {
   );
 }
 
+function ensureNoUndefined<T>(array: (T | undefined)[]): T[] {
+  return array.filter((item): item is T => item !== undefined);
+}
+
 function WalletOptions() {
   const context = React.useContext(SimpleKitContext);
   const { connectors, connect } = useConnectors();
+  const chainConfigs = useEvmChainConfigs();
+  const { connectTo } = useWeb3AuthConnect();
+  const chainId = useChainId();
+
+  const accountAbstractionConnectors = React.useMemo(() => {
+    return ensureNoUndefined(
+      chainConfigs
+        .filter(chainConfig => chainConfig.chainId === chainId)
+        .flatMap(chainConfig =>
+          chainConfig.modules
+            .find(module => module.blockType === 'evm-aa-module')
+            ?.providers.map(({ provider, mfaLevel }) => {
+              return {
+                web3auth: true,
+                connect: async () =>
+                  connectTo(WALLET_CONNECTORS.AUTH, { authConnection: provider, mfaLevel }),
+                name: provider.charAt(0).toUpperCase() + provider.slice(1),
+                icon: authConnectionToIcon[provider as keyof typeof authConnectionToIcon],
+              };
+            }),
+        ),
+    );
+  }, [chainConfigs, chainId, connectTo]);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -274,6 +311,18 @@ function WalletOptions() {
             context.setIsConnectorError(false);
             context.setPendingConnector(connector);
             connect({ connector });
+          }}
+        />
+      ))}
+      {accountAbstractionConnectors.map(connector => (
+        <AccountAbstractionOption
+          key={connector.name}
+          name={connector.name}
+          icon={connector.icon}
+          onClick={async () => {
+            context.setIsConnectorError(false);
+            context.setPendingConnector(connector);
+            await connector.connect();
           }}
         />
       ))}
@@ -296,6 +345,22 @@ function WalletOption(props: { connector: Connector; onClick: () => void }) {
           alt={props.connector.name}
           className="size-8 overflow-hidden rounded-[6px]"
         />
+      )}
+    </Button>
+  );
+}
+
+function AccountAbstractionOption(props: { name?: string; icon?: string; onClick: () => void }) {
+  return (
+    <Button
+      onClick={props.onClick}
+      size="lg"
+      variant="secondary"
+      className="justify-between rounded-xl px-4 py-7 text-base font-semibold"
+    >
+      <p>{props.name}</p>
+      {props.icon && (
+        <img src={props.icon} alt={props.name} className="size-8 overflow-hidden rounded-[6px]" />
       )}
     </Button>
   );
@@ -362,7 +427,7 @@ function RetryConnectorButton() {
   function handleClick() {
     if (context.pendingConnector) {
       context.setIsConnectorError(false);
-      connect({ connector: context.pendingConnector });
+      connect({ connector: context.pendingConnector as Connector });
     }
   }
 

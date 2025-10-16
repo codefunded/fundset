@@ -4,15 +4,30 @@ import { useEffect, useMemo } from 'react';
 import * as viem from 'viem';
 import * as chains from 'wagmi/chains';
 import { type Chain } from 'wagmi/chains';
-import { createConfig, WagmiProvider } from 'wagmi';
+import { createConfig } from 'wagmi';
 import type { EvmSettlementLayerConfig } from './config.type';
-
-export * from './config.type';
-export * from './connectors/web3auth';
+import { Web3AuthProvider } from '@web3auth/modal/react';
+import { WagmiProvider } from './connectors/WagmiProviderWithAA';
+import { walletConnect } from 'wagmi/connectors';
 
 import { createContext, useContext } from 'react';
 import { SimpleKitProvider } from '@/features/auth/evm/components/simplekit';
-import { getWeb3AuthConnector } from './connectors/web3auth/providers';
+
+import { type Web3AuthContextConfig } from '@web3auth/modal/react';
+import { type Web3AuthOptions } from '@web3auth/modal';
+import { evmSettlementLayerEnv } from './env';
+
+const evmEnv = evmSettlementLayerEnv();
+const web3AuthOptions: Web3AuthOptions = {
+  clientId: evmEnv.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || '',
+  web3AuthNetwork: evmEnv.NEXT_PUBLIC_WEB3AUTH_NETWORK,
+};
+
+const web3AuthContextConfig: Web3AuthContextConfig = {
+  web3AuthOptions,
+};
+
+export * from './config.type';
 
 export const EvmChainConfigsContext = createContext<
   EvmSettlementLayerConfig['chainConfigs'] | null
@@ -64,31 +79,17 @@ const EvmSettlementLayerProvider = ({
       {} as Record<number, viem.HttpTransport<undefined, false>>,
     );
 
-    const socialConnectors = props.config.chainConfigs.flatMap(
-      chain =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-        chain.modules
-          .find(module => module.blockType === 'evm-aa-module')
-          ?.providers.map(({ provider }) =>
-            getWeb3AuthConnector({
-              chains: configChains as unknown as Chain[],
-              chainConfigs: props.config.chainConfigs,
-              selectedChainId: chain.chainId,
-              provider,
-              customRpcUrl: transports?.[chain.chainId]?.({}).value?.url,
-            }),
-          )
-          .filter(Boolean)!,
-    );
-
     return {
       wagmiConfig: createConfig({
         chains: configChains as unknown as readonly [Chain, ...Chain[]],
         transports,
         ssr: true,
         multiInjectedProviderDiscovery: true,
-        pollingInterval: 1000,
-        connectors: [...socialConnectors],
+        connectors: [
+          walletConnect({
+            projectId: evmEnv.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
+          }),
+        ],
       }),
     };
   }, [props.config.chainConfigs]);
@@ -112,11 +113,13 @@ const EvmSettlementLayerProvider = ({
   }, []);
 
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <EvmChainConfigsProvider config={props.config.chainConfigs}>
-        <SimpleKitProvider>{children}</SimpleKitProvider>
-      </EvmChainConfigsProvider>
-    </WagmiProvider>
+    <Web3AuthProvider config={web3AuthContextConfig}>
+      <WagmiProvider config={wagmiConfig}>
+        <EvmChainConfigsProvider config={props.config.chainConfigs}>
+          <SimpleKitProvider>{children}</SimpleKitProvider>
+        </EvmChainConfigsProvider>
+      </WagmiProvider>
+    </Web3AuthProvider>
   );
 };
 

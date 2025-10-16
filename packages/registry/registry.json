@@ -206,12 +206,8 @@
             "@t3-oss/env-nextjs",
             "wagmi",
             "viem",
-            "@web3auth/auth-adapter",
-            "@web3auth/base",
             "@web3auth/no-modal",
-            "@web3auth/ethereum-provider",
             "permissionless",
-            "@web3auth/web3auth-wagmi-connector",
             "@uidotdev/usehooks"
           ]
         }
@@ -302,40 +298,22 @@
           "target": "~/packages/web/src/_fundset/settlement-layer/evm/errors/decodeMutationError.ts"
         },
         {
-          "name": "connectors-web3auth",
-          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/index.ts",
-          "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/index.ts"
-        },
-        {
-          "name": "connectors-web3auth-create",
-          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/create.ts",
-          "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/create.ts"
-        },
-        {
-          "name": "connectors-web3auth-base",
-          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/base.ts",
-          "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/base.ts"
-        },
-        {
-          "name": "connectors-web3auth-providers",
-          "path": "../web/src/_fundset/settlement-layer/evm/connectors/web3auth/providers/index.ts",
-          "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/web3auth/providers/index.ts"
-        },
-        {
           "name": "auth-evm",
           "path": "../web/src/features/auth/evm/index.tsx",
           "type": "registry:file",
           "target": "~/packages/web/src/features/auth/evm/index.tsx"
         },
         {
-          "name": "auth-evm-use-web3-auth-reconnect",
-          "path": "../web/src/features/auth/evm/useReconnectWeb3Auth.ts",
+          "name": "auth-evm-get-smart-account-client",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/getSmartAccountClient.ts",
           "type": "registry:file",
-          "target": "~/packages/web/src/features/auth/evm/useReconnectWeb3Auth.ts"
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/getSmartAccountClient.ts"
+        },
+        {
+          "name": "auth-evm-wagmi-provider-with-aa",
+          "path": "../web/src/_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA.tsx"
         },
         {
           "name": "auth-evm-use-switch-chain-if-selected-is-not-configured",

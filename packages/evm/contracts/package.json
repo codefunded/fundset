@@ -35,11 +35,11 @@
     "fastify": "^5.4.0",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.0.6",
-    "permissionless": "0.2.47",
+    "permissionless": "0.2.57",
     "prool": "^0.0.24",
     "tsx": "4.20.3",
     "typescript": "5.9.2",
-    "viem": "^2.34.0",
+    "viem": "^2.38.2",
     "ws": "^8.18.3",
     "zod": "4.0.5",
     "zod-validation-error": "4.0.1"

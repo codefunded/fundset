@@ -3,7 +3,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { withClientOnly } from '@/components/utils/client-only';
 import { ConnectWalletButton } from './components/simplekit';
-import { useReconnectWeb3Auth } from './useReconnectWeb3Auth';
 import { useSwitchChainIfSelectedIsNotConfigured } from './useSwitchChainIfSelectedIsNotConfigured';
 
 const EvmAuthComponentSkeleton = () => (
@@ -14,7 +13,6 @@ const EvmAuthComponentSkeleton = () => (
 
 const EvmAuthComponent = withClientOnly(
   () => {
-    useReconnectWeb3Auth();
     useSwitchChainIfSelectedIsNotConfigured();
 
     return <ConnectWalletButton />;
