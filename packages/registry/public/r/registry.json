@@ -186,12 +186,6 @@
           "target": "~/packages/web/src/lib/ensureDefined.ts"
         },
         {
-          "name": "build-settlement-layer",
-          "path": "../web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts",
-          "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts"
-        },
-        {
           "name": "lib-auth",
           "path": "../web/src/lib/auth.ts",
           "type": "registry:file",
@@ -266,6 +260,12 @@
           "path": "../web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts",
           "type": "registry:file",
           "target": "~/packages/web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts"
+        },
+        {
+          "name": "build-settlement-layer",
+          "path": "../web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts"
         },
         {
           "name": "server-side-settlement-layer",

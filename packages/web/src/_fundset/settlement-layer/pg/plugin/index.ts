@@ -30,7 +30,7 @@ export const pgSettlementLayerPlugin =
     config.onInit = async payload => {
       await defaultOnInit?.(payload);
 
-      const { pgSettlementLayerEnv } = await import('@/_fundset/settlement-layer/pg/plugin/env');
+      const { pgSettlementLayerEnv } = await import('../plugin/env');
       pgSettlementLayerEnv();
 
       if (process.env.NODE_ENV === 'development') {

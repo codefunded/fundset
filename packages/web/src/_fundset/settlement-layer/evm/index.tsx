@@ -19,6 +19,13 @@ const web3AuthOptions = {
   web3AuthNetwork: evmEnv.NEXT_PUBLIC_WEB3AUTH_NETWORK,
 } satisfies Web3AuthOptions;
 
+const Web3AuthProviderWrapper = ({ children }: React.PropsWithChildren) => {
+  if (!evmEnv.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID) {
+    return children;
+  }
+  return <Web3AuthProvider config={{ web3AuthOptions }}>{children}</Web3AuthProvider>;
+};
+
 export * from './config.type';
 
 export const EvmChainConfigsContext = createContext<
@@ -92,14 +99,14 @@ const EvmSettlementLayerProvider = ({
 
   return (
     <EvmChainConfigsProvider config={props.config.chainConfigs}>
-      <Web3AuthProvider config={{ web3AuthOptions }}>
+      <Web3AuthProviderWrapper>
         <WagmiProvider
           config={wagmiConfig}
           accountAbstractionChainConfigs={accountAbstractionChainConfigs}
         >
           <SimpleKitProvider>{children}</SimpleKitProvider>
         </WagmiProvider>
-      </Web3AuthProvider>
+      </Web3AuthProviderWrapper>
     </EvmChainConfigsProvider>
   );
 };

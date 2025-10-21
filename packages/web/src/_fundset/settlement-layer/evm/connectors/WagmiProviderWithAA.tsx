@@ -17,6 +17,7 @@ import {
   useChainId,
 } from 'wagmi';
 import type { WagmiProviderProps } from 'wagmi';
+import { evmSettlementLayerEnv } from '../env';
 
 // Account Abstraction
 import { type SmartAccountClient } from 'permissionless';
@@ -237,10 +238,19 @@ interface AccountAbstractionChainConfigProps {
   }[];
 }
 
+const evmEnv = evmSettlementLayerEnv();
+
 export function WagmiProvider({
   children,
   ...props
 }: PropsWithChildren<WagmiProviderProps & AccountAbstractionChainConfigProps>) {
+  if (!evmEnv.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID) {
+    return createElement(
+      WagmiProviderBase,
+      { ...props, config: props.config, reconnectOnMount: true },
+      children,
+    );
+  }
   return createElement(
     WagmiProviderBase,
     // typecast to WagmiProviderPropsBase to avoid type error

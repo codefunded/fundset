@@ -37,9 +37,10 @@ import { ChainLogo } from './chain-logos';
 import { useTranslations } from 'next-intl';
 import { useEvmChainConfigs } from '@/_fundset/settlement-layer/evm';
 import { useWeb3AuthConnect } from '@web3auth/modal/react';
-import { WALLET_CONNECTORS } from '@web3auth/modal';
+import { MfaLevelType, WALLET_CONNECTORS } from '@web3auth/modal';
 import { authConnectionToIcon } from '@/_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA';
 import { ensureDefined } from '@/lib/ensureDefined';
+import { evmSettlementLayerEnv } from '@/_fundset/settlement-layer/evm/env';
 
 const MODAL_CLOSE_DURATION = 320;
 
@@ -275,10 +276,12 @@ function WalletOptions() {
   const context = React.useContext(SimpleKitContext);
   const { connectors, connect } = useConnectors();
   const chainConfigs = useEvmChainConfigs();
-  const { connectTo } = useWeb3AuthConnect();
   const chainId = useChainId();
 
   const accountAbstractionConnectors = React.useMemo(() => {
+    if (!evmSettlementLayerEnv().NEXT_PUBLIC_WEB3AUTH_CLIENT_ID) {
+      return [];
+    }
     return ensureDefined(
       chainConfigs
         .filter(chainConfig => chainConfig.chainId === chainId)
@@ -288,15 +291,15 @@ function WalletOptions() {
             ?.providers.map(({ provider, mfaLevel }) => {
               return {
                 web3auth: true,
-                connect: async () =>
-                  connectTo(WALLET_CONNECTORS.AUTH, { authConnection: provider, mfaLevel }),
                 name: provider.charAt(0).toUpperCase() + provider.slice(1),
+                provider,
+                mfaLevel,
                 icon: authConnectionToIcon[provider as keyof typeof authConnectionToIcon],
               };
             }),
         ),
     );
-  }, [chainConfigs, chainId, connectTo]);
+  }, [chainConfigs, chainId]);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -319,7 +322,6 @@ function WalletOptions() {
           onClick={async () => {
             context.setIsConnectorError(false);
             context.setPendingConnector(connector);
-            await connector.connect();
           }}
         />
       ))}
@@ -347,10 +349,23 @@ function WalletOption(props: { connector: Connector; onClick: () => void }) {
   );
 }
 
-function AccountAbstractionOption(props: { name?: string; icon?: string; onClick: () => void }) {
+function AccountAbstractionOption(props: {
+  name?: string;
+  icon?: string;
+  provider?: string;
+  mfaLevel?: MfaLevelType;
+  onClick: () => void;
+}) {
+  const { connectTo } = useWeb3AuthConnect();
   return (
     <Button
-      onClick={props.onClick}
+      onClick={() => {
+        props.onClick();
+        connectTo(WALLET_CONNECTORS.AUTH, {
+          authConnection: props.provider,
+          mfaLevel: props.mfaLevel,
+        });
+      }}
       size="lg"
       variant="secondary"
       className="justify-between rounded-xl px-4 py-7 text-base font-semibold"

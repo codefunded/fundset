@@ -42,7 +42,7 @@ export const evmSettlementLayerPlugin =
     config.onInit = async payload => {
       await defaultOnInit?.(payload);
 
-      const { evmSettlementLayerEnv } = await import('@/_fundset/settlement-layer/evm/env');
+      const { evmSettlementLayerEnv } = await import('../env');
       evmSettlementLayerEnv();
 
       if (process.env.NODE_ENV === 'development') {
