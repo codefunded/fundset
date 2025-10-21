@@ -18,15 +18,12 @@ Each module will likely need to have a way to distinguish between users. You wan
 import { SettlementLayer } from 'fundset/settlement-layer';
 import { useMemo } from 'react';
 import { authClient } from '@/lib/auth-client';
-import { buildCounterModule } from './modules/counter';
+import { buildPgSettlementLayer } from './buildSettlementLayer';
 
 export const usePgSettlementLayer = () => {
   const { data: session } = authClient.useSession(); // [!code highlight]
   const pgSettlementLayer: SettlementLayer = useMemo(() => {
-    return {
-      name: 'pg',
-      ...buildCounterModule({ session }), // [!code highlight]
-    };
+    return buildPgSettlementLayer({ session }).pgSettlementLayer; // [!code highlight]
   }, [session]); // [!code highlight]
   return pgSettlementLayer;
 };
@@ -54,22 +51,19 @@ export const authenticatedMiddleware = os
     }
     throw new ORPCError('UNAUTHORIZED');
   });
-
 export const incrementPersonalCounter = os
   .$context<{ headers: Headers }>()
   .use(authenticatedMiddleware)
   .use(dbProvider)
   .input(z.number())
   .handler(async ({ input, context }) => {
-    const counter = await context.db
+    await context.db
       .insert(countersTable)
       // user id is extracted from the session from request context
       .values({ value: input, userId: context.session.user.id })
       .onConflictDoUpdate({
         target: [countersTable.userId],
         set: { value: sql`${countersTable.value} + ${input}` },
-      })
-      .returning();
-    return counter[0].value;
+      });
   });
 ```

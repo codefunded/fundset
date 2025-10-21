@@ -1,5 +1,5 @@
-import { CounterModule } from '@/_fundset/settlement-layer/modules/counter';
-import { oRPCQueryUtils } from '../../orpc/client';
+import { CounterModule } from '@/_fundset/settlement-layer/modules/counter/counter';
+import { oRPCQueryUtils } from '../../../pg/orpc/client';
 import { authClient } from '@/lib/auth-client';
 
 export const buildCounterModule = ({

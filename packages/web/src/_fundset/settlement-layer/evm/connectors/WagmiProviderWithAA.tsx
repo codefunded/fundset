@@ -1,3 +1,5 @@
+'use client';
+
 import { log } from '@web3auth/modal';
 import { useWeb3Auth, useWeb3AuthDisconnect, useWeb3AuthUser } from '@web3auth/modal/react';
 import { createElement, Fragment, PropsWithChildren, useEffect } from 'react';
@@ -60,8 +62,6 @@ async function setupConnector(
   );
 
   if (connector) return connector;
-
-  // Create new connector if not already existing
 
   // DIRECT W3A EOA INJECTED CONNECTOR (NO SMART ACCOUNT)
   // connector = injected({
@@ -170,7 +170,10 @@ async function disconnectWeb3AuthFromWagmi(config: Config) {
   }));
 }
 
-function Web3AuthWagmiProvider({ children }: PropsWithChildren) {
+function Web3AuthWagmiProvider({
+  children,
+  accountAbstractionChainConfigs,
+}: PropsWithChildren<AccountAbstractionChainConfigProps>) {
   const { isConnected, provider } = useWeb3Auth();
   const { disconnect } = useWeb3AuthDisconnect();
   const wagmiConfig = useWagmiConfig();
@@ -198,13 +201,7 @@ function Web3AuthWagmiProvider({ children }: PropsWithChildren) {
           authConnection: userInfo?.authConnection,
           currentChainId: wagmiConfig.state.chainId,
           chains: wagmiConfig.chains as unknown as Chain[],
-          accountAbstractionChainConfigs: [
-            {
-              chainId: 31337,
-              bundlerUrl: 'http://localhost:8010/proxy',
-              paymasterUrl: 'http://localhost:4338',
-            },
-          ],
+          accountAbstractionChainConfigs,
         });
         if (!connector) {
           log.error('Failed to setup react wagmi connector');
@@ -219,18 +216,41 @@ function Web3AuthWagmiProvider({ children }: PropsWithChildren) {
         }
       }
     })();
-  }, [isConnected, wagmiConfig, provider, reconnect, selectedChainId, getUserInfo]);
+  }, [
+    isConnected,
+    wagmiConfig,
+    provider,
+    reconnect,
+    selectedChainId,
+    getUserInfo,
+    accountAbstractionChainConfigs,
+  ]);
 
   return createElement(Fragment, null, children);
 }
 
-export function WagmiProvider({ children, ...props }: PropsWithChildren<WagmiProviderProps>) {
+interface AccountAbstractionChainConfigProps {
+  accountAbstractionChainConfigs?: {
+    chainId: number;
+    bundlerUrl: string;
+    paymasterUrl: string;
+  }[];
+}
+
+export function WagmiProvider({
+  children,
+  ...props
+}: PropsWithChildren<WagmiProviderProps & AccountAbstractionChainConfigProps>) {
   return createElement(
     WagmiProviderBase,
     // typecast to WagmiProviderPropsBase to avoid type error
     // as we are omitting the config prop from WagmiProviderProps
     // and creating a new config object with the finalConfig
     { ...props, config: props.config, reconnectOnMount: true },
-    createElement(Web3AuthWagmiProvider, null, children),
+    createElement(
+      Web3AuthWagmiProvider,
+      { accountAbstractionChainConfigs: props.accountAbstractionChainConfigs },
+      children,
+    ),
   );
 }

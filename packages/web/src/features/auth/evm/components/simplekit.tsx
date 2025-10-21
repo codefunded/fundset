@@ -39,6 +39,7 @@ import { useEvmChainConfigs } from '@/_fundset/settlement-layer/evm';
 import { useWeb3AuthConnect } from '@web3auth/modal/react';
 import { WALLET_CONNECTORS } from '@web3auth/modal';
 import { authConnectionToIcon } from '@/_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA';
+import { ensureDefined } from '@/lib/ensureDefined';
 
 const MODAL_CLOSE_DURATION = 320;
 
@@ -270,10 +271,6 @@ function WalletConnecting() {
   );
 }
 
-function ensureNoUndefined<T>(array: (T | undefined)[]): T[] {
-  return array.filter((item): item is T => item !== undefined);
-}
-
 function WalletOptions() {
   const context = React.useContext(SimpleKitContext);
   const { connectors, connect } = useConnectors();
@@ -282,7 +279,7 @@ function WalletOptions() {
   const chainId = useChainId();
 
   const accountAbstractionConnectors = React.useMemo(() => {
-    return ensureNoUndefined(
+    return ensureDefined(
       chainConfigs
         .filter(chainConfig => chainConfig.chainId === chainId)
         .flatMap(chainConfig =>

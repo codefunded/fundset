@@ -48,6 +48,12 @@ export const getSmartAccountClient = async ({
     throw new Error(`Account abstraction module not found for chain ${chainId}`);
   }
 
+  // Use this if you use ERC-7677 paymaster
+  // const paymasterClient = createPaymasterClient({
+  //   transport: http(accountAbstractionChainConfig.paymasterUrl),
+  // });
+
+  // Use this if you use Pimlico paymaster
   const paymasterClient = createPimlicoClient({
     transport: http(accountAbstractionChainConfig.paymasterUrl),
     entryPoint: {

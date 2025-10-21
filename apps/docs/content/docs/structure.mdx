@@ -28,6 +28,7 @@ Inside the `web` package, in the `src` dir, there's a `_fundset` folder.
         <Folder name="base-plugin"/> 
         <Folder name="config"/>
         <Folder name="settlement-layer"/>
+        <Folder name="modules"/>
       </Folder>
     <Folder name="app"/>
     </Folder>
@@ -50,4 +51,8 @@ Inside the `web` package, in the `src` dir, there's a `_fundset` folder.
 
 ### `settlement-layer`
 
-`settlement-layer` is the most important directory as it contains the base logic to use a given settlement layer as well as the actual settlement layers that are installed into your project. It also contains modules, which are tied to a settlement layer.
+`settlement-layer` is the most important directory as it contains the base logic to use a given settlement layer as well as the actual settlement layers that are installed into your project.
+
+### `modules`
+
+`modules` directory contains modules, which are separate, standalone pieces of functionality in the application. Modules are implemented per settlement layer as each has different setups, prerequisites and configurations.

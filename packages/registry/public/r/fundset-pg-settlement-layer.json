@@ -16,13 +16,25 @@
     },
     {
       "path": "../web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts",
-      "content": "import { SettlementLayer } from 'fundset/settlement-layer';\nimport { useMemo } from 'react';\nimport { authClient } from '@/lib/auth-client';\nimport { buildCounterModule } from './modules/counter';\n\nexport const usePgSettlementLayer = () => {\n  const { data: session } = authClient.useSession();\n  const pgSettlementLayer: SettlementLayer = useMemo(() => {\n    return {\n      name: 'pg',\n      ...buildCounterModule({ session }),\n    };\n  }, [session]);\n  return pgSettlementLayer;\n};\n\nexport default usePgSettlementLayer;\n",
+      "content": "import { SettlementLayer } from 'fundset/settlement-layer';\nimport { useMemo } from 'react';\nimport { authClient } from '@/lib/auth-client';\nimport { buildPgSettlementLayer } from './buildSettlementLayer';\n\nexport const usePgSettlementLayer = () => {\n  const { data: session } = authClient.useSession();\n  const pgSettlementLayer: SettlementLayer = useMemo(() => {\n    return buildPgSettlementLayer({ session }).pgSettlementLayer;\n  }, [session]);\n  return pgSettlementLayer;\n};\n\nexport default usePgSettlementLayer;\n",
       "type": "registry:file",
       "target": "~/packages/web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
     },
     {
+      "path": "../web/src/_fundset/settlement-layer/pg/serverSideSettlementLayer.tsx",
+      "content": "'use server';\n\nimport { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';\nimport { buildPgSettlementLayer } from './buildSettlementLayer';\nimport { auth } from '@/lib/auth';\nimport { headers } from 'next/headers';\n\nexport default async function PgSettlementLayerServerSide({ children }: React.PropsWithChildren) {\n  const queryClient = new QueryClient({\n    defaultOptions: {\n      queries: {\n        staleTime: 5_000,\n      },\n    },\n  });\n\n  const session = await auth.api.getSession({\n    headers: await headers(),\n  });\n\n  const { pgSettlementLayer } = buildPgSettlementLayer({ session });\n\n  await Promise.all([\n    queryClient.prefetchQuery(pgSettlementLayer.counter.globalCounterValueQueryOptions()),\n    queryClient.prefetchQuery(pgSettlementLayer.counter.personalCounterValueQueryOptions()),\n  ]);\n\n  return <HydrationBoundary state={dehydrate(queryClient)}>{children}</HydrationBoundary>;\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/serverSideSettlementLayer.tsx"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/pg/buildSettlementLayer.ts",
+      "content": "import type { authClient } from '@/lib/auth-client';\nimport { buildCounterModule } from '../modules/counter/pg/build';\n\nexport const buildPgSettlementLayer = ({\n  session,\n}: {\n  session: ReturnType<typeof authClient.useSession>['data'];\n}) => {\n  const pgSettlementLayer = {\n    name: 'pg',\n    ...buildCounterModule({ session }),\n  };\n  return { pgSettlementLayer };\n};\n\nexport default buildPgSettlementLayer;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/pg/buildSettlementLayer.ts"
+    },
+    {
       "path": "../web/src/_fundset/settlement-layer/pg/db-schema.ts",
-      "content": "import { integer, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';\n\nexport const countersTable = pgTable('counters', {\n  userId: varchar({ length: 255 }).notNull().primaryKey(),\n  value: integer().notNull(),\n});\n\nexport const globalCounterTable = pgTable('global_counter', {\n  id: serial('id').primaryKey(),\n  by: integer().notNull(),\n  currentGlobalValue: integer().notNull(),\n  createdAt: timestamp().defaultNow(),\n});\n",
+      "content": "export * from '../modules/counter/pg/db-schema';\n",
       "type": "registry:file",
       "target": "~/packages/web/src/_fundset/settlement-layer/pg/db-schema.ts"
     },
@@ -64,7 +76,7 @@
     },
     {
       "path": "../web/src/_fundset/settlement-layer/pg/orpc/router.ts",
-      "content": "import { counterModule } from '../modules/counter/orpc';\n\nexport const router = {\n  ...counterModule,\n};\n",
+      "content": "import { counterModule } from '../../modules/counter/pg/orpc';\n\nexport const router = {\n  ...counterModule,\n};\n",
       "type": "registry:file",
       "target": "~/packages/web/src/_fundset/settlement-layer/pg/orpc/router.ts"
     },
@@ -79,6 +91,18 @@
       "content": "import { router } from '@/_fundset/settlement-layer/pg/orpc/router';\nimport { RPCHandler } from '@orpc/server/fetch';\n\nconst handler = new RPCHandler(router);\n\nconst corsHeaders = {\n  'access-control-allow-origin': '*',\n  'access-control-allow-methods': 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',\n  'access-control-allow-headers': '*',\n};\n\nasync function handleRequest(request: Request) {\n  const { response } = await handler.handle(request, {\n    prefix: '/api/rpc',\n    context: {\n      headers: request.headers,\n    },\n  });\n\n  if (response) {\n    Object.entries(corsHeaders).forEach(([k, v]) => response.headers.set(k, v));\n    return response;\n  }\n\n  return new Response('Not found', {\n    status: 404,\n    headers: corsHeaders,\n  });\n}\n\nasync function handleOptions() {\n  return new Response(null, {\n    status: 204,\n    headers: corsHeaders,\n  });\n}\n\nexport const OPTIONS = handleOptions;\nexport const HEAD = handleRequest;\nexport const GET = handleRequest;\nexport const POST = handleRequest;\nexport const PUT = handleRequest;\nexport const PATCH = handleRequest;\nexport const DELETE = handleRequest;\n",
       "type": "registry:file",
       "target": "~/packages/web/src/app/(app)/api/rpc/[[...all]]/route.ts"
+    },
+    {
+      "path": "../web/src/lib/ensureDefined.ts",
+      "content": "export function ensureDefined<T>(array: (T | undefined | null)[]): NonNullable<T>[] {\n  return array.filter((item): item is NonNullable<T> => item !== undefined && item !== null);\n}\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/lib/ensureDefined.ts"
+    },
+    {
+      "path": "../web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts",
+      "content": "import { EvmSettlementLayerConfig } from './config.type';\nimport * as viem from 'viem';\nimport * as chains from 'wagmi/chains';\nimport { createConfig } from 'wagmi';\nimport { walletConnect } from 'wagmi/connectors';\nimport { evmSettlementLayerEnv } from './env';\nimport { EvmChainModules, EvmModule } from './config.type';\n\nimport { buildCounterModule } from '../modules/counter/evm/build';\n\nexport const buildEvmSettlementLayer = (\n  config: EvmSettlementLayerConfig,\n  {\n    walletClient,\n    selectedChainId,\n  }: {\n    walletClient?: viem.WalletClient<viem.Transport, viem.Chain, viem.Account>;\n    selectedChainId?: number;\n  } = {},\n) => {\n  const chainConfigs = config.chainConfigs.map(chain =>\n    Object.values(chains).find(c => c.id === chain.chainId),\n  );\n\n  if (chainConfigs.length === 0) {\n    throw new Error(`Chains [${config.chainConfigs.map(c => c.chainId).join(', ')}] not found`);\n  }\n\n  const transports = config.chainConfigs.reduce(\n    (acc, chain) => ({\n      ...acc,\n      [chain.chainId]: viem.http(chain.rpcUrl, {\n        retryCount: 5,\n        retryDelay: 200,\n        batch: { wait: 100 },\n      }),\n    }),\n    {} as Record<number, viem.HttpTransport<undefined, false>>,\n  );\n\n  const wagmiConfig = createConfig({\n    chains: chainConfigs as unknown as readonly [viem.Chain, ...viem.Chain[]],\n    transports,\n    ssr: true,\n    multiInjectedProviderDiscovery: true,\n    connectors:\n      typeof window !== 'undefined'\n        ? [\n            walletConnect({\n              projectId: evmSettlementLayerEnv().NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',\n            }),\n          ]\n        : [],\n  });\n\n  const evmModules = config.chainConfigs.reduce((acc, chainConfig) => {\n    acc[chainConfig.chainId] = {\n      proxyAddress: chainConfig.proxyAddress,\n      contracts: chainConfig.modules.reduce(\n        (contractsAcc, module) => {\n          if ('contracts' in module) {\n            module.contracts.forEach(contract => {\n              Object.entries(contract).forEach(([key, value]) => {\n                if (key === 'id' || value === null) {\n                  return;\n                }\n                // eslint-disable-next-line @typescript-eslint/no-explicit-any\n                (contractsAcc as any)[key] = value as `0x${string}`;\n              });\n            });\n          }\n          return contractsAcc;\n        },\n        {} as EvmModule['contracts'],\n      ),\n    };\n    return acc;\n  }, {} as EvmChainModules);\n\n  const chainId = selectedChainId ?? config.chainConfigs[0].chainId;\n\n  const chain = Object.values(chains).find(c => c.id === chainId) as chains.Chain;\n\n  const evmModule = evmModules[chainId];\n  if (!evmModule) {\n    throw new Error(`Evm module not found for chainId: ${chainId}`);\n  }\n\n  const evmSettlementLayer = {\n    name: 'evm',\n    ...buildCounterModule({\n      evmModule,\n      chain,\n      walletClient,\n      config: wagmiConfig,\n    }),\n  };\n\n  return {\n    evmSettlementLayer,\n    evmModules,\n    chainId,\n    chain,\n    wagmiConfig,\n    transports,\n  };\n};\n\nexport default buildEvmSettlementLayer;\n",
+      "type": "registry:file",
+      "target": "~/packages/web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts"
     },
     {
       "path": "../web/src/lib/auth.ts",

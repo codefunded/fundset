@@ -1,9 +1,9 @@
 import { os } from '@orpc/server';
 import { z } from 'zod';
-import { countersTable, globalCounterTable } from '../../db-schema';
+import { countersTable, globalCounterTable } from '../../../pg/db-schema';
 import { desc, eq, sql } from 'drizzle-orm';
-import { authenticatedMiddleware, dbProvider } from '../../orpc/common';
-import { GlobalCounterIncrementEvent } from '@/_fundset/settlement-layer/modules/counter';
+import { authenticatedMiddleware, dbProvider } from '../../../pg/orpc/common';
+import { GlobalCounterIncrementEvent } from '@/_fundset/settlement-layer/modules/counter/counter';
 
 export const getGlobalCounter = os
   .use(dbProvider)

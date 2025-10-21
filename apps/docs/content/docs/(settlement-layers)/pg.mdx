@@ -16,7 +16,7 @@ Postgres settlement layer is a settlement layer that is using following tech und
 ### DB Schema
 
 Pg settlement layer uses drizzle-orm to interact with the database. When you want to store some data in a db you have to create a table schema first.
-You can do this in `db-schema.ts` file.
+You can do this either in `db-schema.ts` file or create a new module with a db schema file that will be reexported from `db-schema.ts`:
 
 ```ts title="_fundset/settlement-layer/pg/db-schema.ts"
 import { pgTable, varchar, integer } from 'drizzle-orm/pg-core';
@@ -65,7 +65,7 @@ pnpm drizzle-kit migrate
 You should be particularly interested in `router.ts` file, where you can add your own modules:
 
 ```ts title="_fundset/settlement-layer/pg/orpc/router.ts"
-import { counterModule } from '../modules/counter/orpc';
+import { counterModule } from '../../modules/counter/pg/orpc';
 
 export const router = {
   ...counterModule,
@@ -74,8 +74,8 @@ export const router = {
 
 ### Modules
 
-`_fundset/settlement-layer/pg/modules` folder contains all the modules that are available for the pg settlement layer.
-Check out the docs on [how to build your own modules](/docs/how-to-implement-module)
+Each module that supports postgres, will have a `pg` directory inside it.<br/>
+Check out the docs on [how to build your own modules](/docs/how-to-implement-module).
 
 ### Payload CMS Plugin
 

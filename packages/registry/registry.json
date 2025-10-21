@@ -108,6 +108,18 @@
           "target": "~/packages/web/src/_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
         },
         {
+          "name": "server-side-settlement-layer",
+          "path": "../web/src/_fundset/settlement-layer/pg/serverSideSettlementLayer.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/serverSideSettlementLayer.tsx"
+        },
+        {
+          "name": "build-settlement-layer",
+          "path": "../web/src/_fundset/settlement-layer/pg/buildSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/pg/buildSettlementLayer.ts"
+        },
+        {
           "name": "db-schema",
           "path": "../web/src/_fundset/settlement-layer/pg/db-schema.ts",
           "type": "registry:file",
@@ -166,6 +178,18 @@
           "path": "../web/src/app/(app)/api/rpc/[[...all]]/route.ts",
           "type": "registry:file",
           "target": "~/packages/web/src/app/(app)/api/rpc/[[...all]]/route.ts"
+        },
+        {
+          "name": "lib-ensure-defined",
+          "path": "../web/src/lib/ensureDefined.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/lib/ensureDefined.ts"
+        },
+        {
+          "name": "build-settlement-layer",
+          "path": "../web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/buildSettlementLayer.ts"
         },
         {
           "name": "lib-auth",
@@ -242,6 +266,12 @@
           "path": "../web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts",
           "type": "registry:file",
           "target": "~/packages/web/src/_fundset/settlement-layer/evm/useSettlementLayerImplementation.ts"
+        },
+        {
+          "name": "server-side-settlement-layer",
+          "path": "../web/src/_fundset/settlement-layer/evm/serverSideSettlementLayer.tsx",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/evm/serverSideSettlementLayer.tsx"
         },
         {
           "name": "env",
@@ -355,9 +385,9 @@
       "files": [
         {
           "name": "counter-module-definition-dts",
-          "path": "../web/src/_fundset/settlement-layer/modules/counter.d.ts",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter/counter.d.ts",
           "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter.d.ts"
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/counter.d.ts"
         }
       ]
     },
@@ -373,9 +403,9 @@
       "files": [
         {
           "name": "counter-module-logic",
-          "path": "../web/src/_fundset/settlement-layer/evm/modules/counter/index.ts",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter/evm/build.ts",
           "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/evm/modules/counter/index.ts"
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/evm/build.ts"
         },
         {
           "name": "counter-module-contracts-counter-lib",
@@ -445,15 +475,21 @@
       "files": [
         {
           "name": "counter-module-rpc",
-          "path": "../web/src/_fundset/settlement-layer/pg/modules/counter/orpc.ts",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter/pg/orpc.ts",
           "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/pg/modules/counter/orpc.ts"
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/pg/orpc.ts"
         },
         {
           "name": "counter-module-implementation",
-          "path": "../web/src/_fundset/settlement-layer/pg/modules/counter/index.ts",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter/pg/build.ts",
           "type": "registry:file",
-          "target": "~/packages/web/src/_fundset/settlement-layer/pg/modules/counter/index.ts"
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/pg/build.ts"
+        },
+        {
+          "name": "counter-module-db-schema",
+          "path": "../web/src/_fundset/settlement-layer/modules/counter/pg/db-schema.ts",
+          "type": "registry:file",
+          "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/pg/db-schema.ts"
         }
       ]
     }

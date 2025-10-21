@@ -7,7 +7,6 @@ export const evmSettlementLayerPlugin =
   (config: Config): Config => {
     config.globals ??= [];
 
-    // append the postgres option to the settlement layer type field
     const fundsetSettlementLayer = config.globals.find(g => g.slug === 'fundset-settlement-layer');
 
     if (!fundsetSettlementLayer) {

@@ -1,20 +1,21 @@
 import { Config } from 'wagmi';
-import { waitForTransactionReceipt, writeContract } from 'wagmi/actions';
+import { waitForTransactionReceipt } from 'wagmi/actions';
 import {
   readContractQueryKey,
   readContractQueryOptions,
   writeContractMutationOptions,
 } from 'wagmi/query';
+import { graphql } from 'gql.tada';
+import { request } from 'graphql-request';
+import { Account, Chain, Transport, WalletClient } from 'viem';
 
 import CounterAbiV1 from '@fundset/contracts/abi/Counter/CounterV1.sol/CounterV1';
 import CounterAbiV2 from '@fundset/contracts/abi/Counter/CounterV2.sol/CounterV2';
-import { EvmModule } from '../../config.type';
-import { Account, Chain, Transport, WalletClient } from 'viem';
-import { CounterModule } from '@/_fundset/settlement-layer/modules/counter';
-import { waitForTransactionToBeIndexed } from '../../helpers';
-import { graphql } from 'gql.tada';
-import { request } from 'graphql-request';
-import { evmSettlementLayerEnv } from '../../env';
+
+import { CounterModule } from '@/_fundset/settlement-layer/modules/counter/counter';
+import { waitForTransactionToBeIndexed } from '@/_fundset/settlement-layer/evm/helpers';
+import { evmSettlementLayerEnv } from '@/_fundset/settlement-layer/evm/env';
+import { EvmModule } from '@/_fundset/settlement-layer/evm/config.type';
 
 export const buildCounterModule = ({
   evmModule,
@@ -73,9 +74,8 @@ export const buildCounterModule = ({
         ...writeContractMutationOptions(config),
         mutationFn: walletClient
           ? async (amount: number) => {
-              const hash = await writeContract(config, {
+              const hash = await walletClient.writeContract({
                 chain,
-                account: walletClient.account,
                 abi: CounterAbiV2,
                 address: evmModule.proxyAddress as `0x${string}`,
                 functionName: 'incBy',
@@ -118,7 +118,7 @@ export const buildCounterModule = ({
         ...writeContractMutationOptions(config),
         mutationFn: walletClient
           ? async (amount: number) => {
-              const hash = await writeContract(config, {
+              const hash = await walletClient.writeContract({
                 chain,
                 account: walletClient.account,
                 abi: CounterAbiV2,

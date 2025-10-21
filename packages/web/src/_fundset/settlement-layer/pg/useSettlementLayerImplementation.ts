@@ -1,15 +1,12 @@
 import { SettlementLayer } from 'fundset/settlement-layer';
 import { useMemo } from 'react';
 import { authClient } from '@/lib/auth-client';
-import { buildCounterModule } from './modules/counter';
+import { buildPgSettlementLayer } from './buildSettlementLayer';
 
 export const usePgSettlementLayer = () => {
   const { data: session } = authClient.useSession();
   const pgSettlementLayer: SettlementLayer = useMemo(() => {
-    return {
-      name: 'pg',
-      ...buildCounterModule({ session }),
-    };
+    return buildPgSettlementLayer({ session }).pgSettlementLayer;
   }, [session]);
   return pgSettlementLayer;
 };

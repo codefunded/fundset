@@ -6,10 +6,10 @@
   "description": "counter-module-definition",
   "files": [
     {
-      "path": "../web/src/_fundset/settlement-layer/modules/counter.d.ts",
+      "path": "../web/src/_fundset/settlement-layer/modules/counter/counter.d.ts",
       "content": "import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';\n\nexport type GlobalCounterIncrementEvent = {\n  amount: number;\n  timestamp: Date;\n  by: number;\n  id: string;\n};\n\nexport interface CounterModule {\n  counter: {\n    isIncrementGlobalCounterReady: boolean;\n    incrementGlobalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;\n    globalCounterValueQueryOptions: () => UseQueryOptions<\n      unknown,\n      Error,\n      number | undefined,\n      QueryKey\n    >;\n    globalCounterIncrementEventsQueryOptions: ({\n      limit,\n      offset,\n    }: {\n      limit: number;\n      offset: number;\n    }) => UseQueryOptions<unknown, Error, GlobalCounterIncrementEvent[], QueryKey>;\n\n    isIncrementPersonalCounterReady: boolean;\n    incrementPersonalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;\n    personalCounterValueQueryOptions: () => UseQueryOptions<\n      unknown,\n      Error,\n      number | undefined,\n      QueryKey\n    >;\n  };\n}\n\ndeclare module 'fundset/settlement-layer' {\n  // eslint-disable-next-line @typescript-eslint/no-empty-object-type\n  export interface SettlementLayer extends CounterModule {}\n}\n",
       "type": "registry:file",
-      "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter.d.ts"
+      "target": "~/packages/web/src/_fundset/settlement-layer/modules/counter/counter.d.ts"
     }
   ]
 }

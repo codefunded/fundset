@@ -35,47 +35,44 @@ const EvmSettlementLayerProvider = ({
   children,
   ...props
 }: React.PropsWithChildren<{ config: EvmSettlementLayerConfig }>) => {
-  const wagmiConfig = useMemo(() => {
-    const configChains = props.config.chainConfigs.map(chain =>
-      Object.values(chains).find(c => c.id === chain.chainId),
-    );
+  const { wagmiConfig } = useMemo(() => buildEvmSettlementLayer(props.config), [props.config]);
 
-    const transports = props.config.chainConfigs.reduce(
-      (acc, chain) => ({
-        ...acc,
-        [chain.chainId]: viem.http(chain.rpcUrl, {
-          retryCount: 5,
-          retryDelay: 200,
-          batch: { wait: 100 },
-        }),
-      }),
-      {} as Record<number, viem.HttpTransport<undefined, false>>,
-    );
-
-    return createConfig({
-      chains: configChains as unknown as readonly [Chain, ...Chain[]],
-      transports,
-      ssr: true,
-      multiInjectedProviderDiscovery: true,
-      pollingInterval: 1000,
-    });
-  }, [props.config.chainConfigs]);
+  useEffect(function hotContractReload() {
+    if (process.env.NODE_ENV === 'development') {
+      const wss = new WebSocket('http://localhost:9999');
+      wss.onopen = () => {
+        console.log('Hot Contract Reload: WebSocket connection established');
+      };
+      wss.onmessage = event => {
+        if (event.data === 'reload') {
+          window.location.reload();
+        }
+      };
+      return () => {
+        console.log('Hot Contract Reload: WebSocket connection closed');
+        wss.close();
+      };
+    }
+  }, []);
 
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <EvmChainConfigsProvider config={props.config.chainConfigs}>
-        {children}
-      </EvmChainConfigsProvider>
-    </WagmiProvider>
+    <EvmChainConfigsProvider config={props.config.chainConfigs}>
+      <Web3AuthProvider config={{ web3AuthOptions }}>
+        <WagmiProvider config={wagmiConfig}>
+          <SimpleKitProvider>{children}</SimpleKitProvider>
+        </WagmiProvider>
+      </Web3AuthProvider>
+    </EvmChainConfigsProvider>
   );
 };
+
+export default EvmSettlementLayerProvider;
 ```
 
 ### Modules
 
-`_fundset/settlement-layer/evm/modules` folder contains all the modules available for the EVM settlement layer. Each module provides blockchain interactions:
-
-Check out the docs on [how to build your own modules](/docs/how-to-implement-module)
+Each module that supports EVM, will have a `evm` directory inside it.<br/>
+Check out the docs on [how to build your own modules](/docs/how-to-implement-module).
 
 ### Payload CMS Plugin
 
@@ -83,15 +80,15 @@ Check out the docs on [how to build your own modules](/docs/how-to-implement-mod
 
 Check out the [Payload docs](https://payloadcms.com/docs/plugins/overview) to learn more about plugins.
 
-### Account Abstracted Wallet Connectors
+### Account Abstracttion
 
-`_fundset/settlement-layer/evm/connectors` folder contains [web3auth](https://web3auth.io/) wallet connection implementations:
+`_fundset/settlement-layer/evm/connectors` folder contains [web3auth](https://web3auth.io/) wallet connection implementation. In order for it to work, you have to generate an API key for web3auth.
 
-```ts title="_fundset/settlement-layer/evm/connectors/web3auth/index.ts"
-export { SESSION_TIME } from './base';
-export { LOGIN_PROVIDER, type LOGIN_PROVIDER_TYPE, MFA_LEVELS } from '@web3auth/auth-adapter';
-export * from './providers';
-```
+First file is the wrapper around `WagmiConfig` component that synchronises wagmi with web3auth connection: `_fundset/settlement-layer/evm/connectors/WagmiProviderWithAA.tsx`.
+
+Second is the builder of the smart account client: `_fundset/settlement-layer/evm/connectors/getSmartAccountClient.ts`. This function is responsible for building the smart account `viem` client. The underlying smart account is [Kernel](https://github.com/zerodevapp/kernel) by [ZeroDev](https://zerodev.app/).
+
+The AA standard used is ERC-4337 with all bundlers supported and [Pimlico](https://docs.pimlico.io/) paymaster. This stack is of course fully editable as you have full control over the implementation so you can bring your own AA providers. For example, You can easily switch to ERC-7677 paymaster by using `createPaymasterClient` from `viem/account-abstraction` package if you don't want to use Pimlico.
 
 ### Indexer
 

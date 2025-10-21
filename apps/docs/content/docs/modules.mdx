@@ -16,39 +16,65 @@ Each module is split into the interface declaration and the implementation. So e
 ```ts
 import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 
-declare module 'fundset/settlement-layer' {
-  export interface SettlementLayer {
-    counter: {
-      isIncrementGlobalCounterReady: boolean;
-      incrementGlobalCounterMutationOptions: UseMutationOptions<void, Error, number>;
-      globalCounterValueQueryOptions: UseQueryOptions<unknown, Error, number | undefined, QueryKey>;
+export type GlobalCounterIncrementEvent = {
+  amount: number;
+  timestamp: Date;
+  by: number;
+  id: string;
+};
 
-      isIncrementPersonalCounterReady: boolean;
-      incrementPersonalCounterMutationOptions: UseMutationOptions<void, Error, number>;
-      personalCounterValueQueryOptions: UseQueryOptions<
-        unknown,
-        Error,
-        number | undefined,
-        QueryKey
-      >;
-    };
-  }
+export interface CounterModule {
+  counter: {
+    isIncrementGlobalCounterReady: boolean;
+    incrementGlobalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;
+    globalCounterValueQueryOptions: () => UseQueryOptions<
+      unknown,
+      Error,
+      number | undefined,
+      QueryKey
+    >;
+    globalCounterIncrementEventsQueryOptions: ({
+      limit,
+      offset,
+    }: {
+      limit: number;
+      offset: number;
+    }) => UseQueryOptions<unknown, Error, GlobalCounterIncrementEvent[], QueryKey>;
+
+    isIncrementPersonalCounterReady: boolean;
+    incrementPersonalCounterMutationOptions: () => UseMutationOptions<void, Error, number>;
+    personalCounterValueQueryOptions: () => UseQueryOptions<
+      unknown,
+      Error,
+      number | undefined,
+      QueryKey
+    >;
+  };
+}
+
+declare module 'fundset/settlement-layer' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  export interface SettlementLayer extends CounterModule {}
 }
 ```
 
-For organisation purposes, you can also group the module functions into a single object. In the example above, we're grouping the counter functions into a single object called `counter`.
+For organisation purposes, you should group the module functions into a single object. In the example above, we're grouping the counter functions into a single object called `counter`, so e.g. functionality for getting the global counter value query options is available under `settlementLayerObject.counter.globalCounterValueQueryOptions()`
 
-2. **Implementation files**: each module also has an implementation that is tied to a specific settlement layer. It is located in the `_fundset/settlement-layer/<settlement-layer-name>/modules/<module-name>` directory.
+2. **Implementation files**: each module also has an implementation that is tied to a specific settlement layer. It is located in the `_fundset/settlement-layer/modules/<module-name>/<settlement-layer-name>` directory.
 
 <Files>
   <Folder name="_fundset" defaultOpen>
     <Folder name="settlement-layer" defaultOpen>
-      <Folder name="pg" defaultOpen>
-        <Folder name="modules" defaultOpen>
-          <Folder name="counter" defaultOpen>
-            <File name="index.ts" />
+      <Folder name="modules" defaultOpen>
+        <Folder name="counter" defaultOpen>
+          <Folder name="pg" defaultOpen>
+            <File name="build.ts" />
+            <File name="db-schema.ts" />
             <File name="orpc.ts" />
           </Folder>
+        </Folder>
+        <Folder name="evm" defaultOpen>
+          <File name="build.ts" />
         </Folder>
       </Folder>
     </Folder>
@@ -59,28 +85,25 @@ The implementation file should return either a direct implementation of the modu
 
 ## Extending the Settlement Layer
 
-Each settlement layer has its `useSettlementLayerImplementation` hook, which is responsible for constructing the settlement layer object and injecting implementation of the modules into it. That hook is located in the `_fundset/settlement-layer/<settlement-layer-name>/useSettlementLayerImplementation.ts` file.
+Each settlement layer has its `buildSettlementLayer` function, which is responsible for constructing the settlement layer object and injecting implementation of the modules into it. That function is located in the `_fundset/settlement-layer/<settlement-layer-name>/buildSettlementLayer.ts` file.
 In order to inject the module implementation into the settlement layer object, you need to pass it when constructing the settlement layer object:
 
-```ts title="_fundset/settlement-layer/pg/useSettlementLayerImplementation.ts"
+```ts title="_fundset/settlement-layer/pg/buildSettlementLayer.ts"
 // counter module is using a function to build the module implementation because it requires a user auth session
-import { SettlementLayer } from 'fundset/settlement-layer';
-import { useMemo } from 'react';
-import { authClient } from '@/lib/auth-client';
-import { buildCounterModule } from './modules/counter'; // [!code highlight]
+import type { authClient } from '@/lib/auth-client';
+import { buildCounterModule } from '../modules/counter/pg/build';
 
-export const usePgSettlementLayer = () => {
-  const { data: session } = authClient.useSession();
-  const pgSettlementLayer: SettlementLayer = useMemo(() => {
-    return {
-      name: 'pg',
-      ...buildCounterModule({ session }), // [!code highlight]
-    };
-  }, [session]);
-  return pgSettlementLayer;
+export const buildPgSettlementLayer = ({
+  session,
+}: {
+  session: ReturnType<typeof authClient.useSession>['data'];
+}) => {
+  const pgSettlementLayer = {
+    name: 'pg',
+    ...buildCounterModule({ session }),
+  };
+  return { pgSettlementLayer };
 };
-
-export default usePgSettlementLayer;
 ```
 
 After that you should be able to use the module in your application code by using the `useSettlementLayer` hook:

@@ -63,11 +63,13 @@ It isn't as hard as it sounds, but we strongly recommend you to [contact us](htt
 **Settlement layer consist of:**
 
 - Payload CMS plugin that extends the base config with a new option
-- useSettlementLayerImplementation hook that builds the settlement layer and provides it for the React components
+- buildSettlementLayer function that builds the settlement layer and injects all the modules into it
+- useSettlementLayerImplementation hook that provides it for the React components
+- Settlement layer React provider components (server side and client side) that allow to run async logic on the server before each page navigation and to read data about the settlement layer from all React components in the tree
 - auth component specific to the settlement layer
 - monorepo packages that contain necessary infrastructure for the settlement layer to work (e.g docker compose file for the database)
 
-**Here's a brief guide on how to implement a new settlement layer for MySql:**
+**Here's a brief guide on how to implement a new settlement layer for MySQL:**
 
 1. create a new monorepo package called `mysql` in `packages`. Dump a docker compose file into it that sets up a MySql database. Also remember to include a `package.json` file with a dev script that starts docker compose.
 2. create a new directory called `mysql` in `apps/web/src/_fundset/settlement-layer`.
@@ -75,8 +77,10 @@ It isn't as hard as it sounds, but we strongly recommend you to [contact us](htt
 4. load any env variables needed for the settlement layer to work (e.g. database url) in the plugin's `onInit` function
 5. implement the logic for all modules for that settlement layer. This will include setting up the database schema and connection (we recommend using drizzle, check out how postgres SL does it), setting some backend solution (we recommend oRPC)
 6. create `_fundset/settlement-layer/mysql/index.tsx` file that is gonna default export a component that renders all the context providers needed for the SL to work
-7. create `_fundset/settlement-layer/mysql/useSettlementLayerImplementation.ts` file that is gonna build the actual settlement layer object
-8. invoke the payload CMS plugin in the payload config file
+7. create `_fundset/settlement-layer/mysql/buildSettlementLayer.ts` file that is gonna build the settlement layer and inject all the modules into it
+8. create `_fundset/settlement-layer/mysql/useSettlementLayerImplementation.ts` file that is gonna provide the actual settlement layer to React components
+9. invoke the payload CMS plugin in the payload config file
+10. [OPTIONAL]: if you want to run any logic on the server side, from the React Server Component, you can create a new file called `_fundset/settlement-layer/mysql/serverSideSettlementLayer.ts` that will be called from the page server component.
 
 and now you have a new settlement layer ready to be used in your app!
 
