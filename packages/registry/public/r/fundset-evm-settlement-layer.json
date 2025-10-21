@@ -154,7 +154,7 @@
         "@t3-oss/env-nextjs",
         "wagmi",
         "viem",
-        "@web3auth/no-modal",
+        "@web3auth/modal",
         "permissionless",
         "@uidotdev/usehooks"
       ]

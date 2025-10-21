@@ -2,12 +2,12 @@
   "name": "fundset",
   "description": "Fundset CLI tool to initialize a new fundset project and install modules",
   "author": "codefunded <kamil@codefunded.com>",
-  "homepage": "https://fundset.vercel.app",
+  "homepage": "https://fundset.codefunded.com",
   "repository": {
     "url": "https://github.com/codefunded/fundset",
     "type": "git"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "bin": {
     "fundset": "dist/index.mjs"
   },

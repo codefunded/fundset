@@ -1,15 +1,15 @@
 # Fundset CLI
 
-Initialize a [Fundset](https://fundset.vercel.app) monorepo and add modules/layers from the Fundset registry.
+Initialize a [Fundset](https://fundset.codefunded.com) monorepo and add modules/layers from the Fundset registry.
 
 ## Quick start
 
 ```bash
 # Initialize in a new folder using the Postgres template
-npx fundset my-app -t pg
+npx fundset init my-app -t pg
 
 # Or initialize with the EVM template into the current directory
-pnpm dlx fundset . --template evm
+pnpm dlx fundset init . --template evm
 
 # Add a module/layer later (wraps shadcn add)
 npx fundset add https://fundset.vercel.app/r/fundset-evm-counter-module.json
@@ -17,10 +17,10 @@ npx fundset add https://fundset.vercel.app/r/fundset-evm-counter-module.json
 
 ## Commands
 
-### init (default)
+### init
 
 ```bash
-fundset [dest] [options]
+fundset init [dest] [options]
 ```
 
 - **dest**: target directory (defaults to `.`)
@@ -62,10 +62,10 @@ fundset add https://fundset.vercel.app/r/fundset-pg-counter-module.json
 
 ```bash
 # Create a Postgres template app in my-app/
-npx fundset my-app -t pg
+npx fundset init my-app -t pg
 
 # Create an EVM template app in the current directory
-npx fundset . -t evm
+npx fundset init . -t evm
 
 # Add a module after init
 npx fundset add https://fundset.vercel.app/r/fundset-evm-counter-module.json

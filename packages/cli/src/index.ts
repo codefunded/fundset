@@ -19,12 +19,20 @@ import packageJson from '../package.json' with { type: 'json' };
 
 const program = new Command();
 program
-  .name('init')
-  .description('Initialize a project by copying files from a GitHub repo')
+  .name('fundset')
+  .description('Fundset CLI tool to initialize a new fundset project and install modules')
+  .action(async () => {
+    program.help();
+    process.exit(0);
+  });
+
+program
+  .command('init')
+  .description('Initialize a fundset project by copying files from a GitHub repo')
   .argument('[dest]', 'Destination folder', '.')
   .option('-t, --template <template>', 'Template type: pg or evm')
   .option('--registry-url <url>', 'Registry URL', 'https://fundset.vercel.app')
-  .action(async (dest, options) => {
+  .action(async (dest: string, options: { template: string; registryUrl: string }) => {
     try {
       const octokit = new Octokit();
 
