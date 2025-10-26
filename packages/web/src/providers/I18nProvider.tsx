@@ -1,8 +1,10 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getLocale, getMessages } from 'next-intl/server';
+import { Locale, NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 
-export default async function I18nProvider({ children }: { children: React.ReactNode }) {
-  const locale = await getLocale();
+export default async function I18nProvider({
+  children,
+  locale,
+}: React.PropsWithChildren<{ locale: Locale }>) {
   const messages = await getMessages({ locale });
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>

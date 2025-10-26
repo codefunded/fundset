@@ -1,47 +1,47 @@
 export default [
   {
     "type": "error",
-    "name": "DiamondWritable__InvalidInitializationParameters",
+    "name": "DiamondProxyWritable__InvalidInitializationParameters",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__RemoveTargetNotZeroAddress",
+    "name": "DiamondProxyWritable__RemoveTargetNotZeroAddress",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__ReplaceTargetIsIdentical",
+    "name": "DiamondProxyWritable__ReplaceTargetIsIdentical",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__SelectorAlreadyAdded",
+    "name": "DiamondProxyWritable__SelectorAlreadyAdded",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__SelectorIsImmutable",
+    "name": "DiamondProxyWritable__SelectorIsImmutable",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__SelectorNotFound",
+    "name": "DiamondProxyWritable__SelectorNotFound",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__SelectorNotSpecified",
+    "name": "DiamondProxyWritable__SelectorNotSpecified",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "DiamondWritable__TargetHasNoCode",
+    "name": "DiamondProxyWritable__TargetHasNoCode",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "ERC165Base__InvalidInterfaceId",
+    "name": "Introspectable__InvalidInterfaceId",
     "inputs": []
   },
   {
@@ -61,8 +61,37 @@ export default [
   },
   {
     "type": "error",
-    "name": "SafeOwnable__NotNomineeOwner",
+    "name": "Proxy__SenderIsNotAdmin",
     "inputs": []
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "AdminChanged",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "previousAdmin",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "newAdmin",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "anonymous": false,
+    "name": "BeaconUpgraded",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "beacon",
+        "indexed": true
+      }
+    ]
   },
   {
     "type": "event",
@@ -118,13 +147,16 @@ export default [
     ]
   },
   {
-    "type": "function",
-    "name": "acceptOwnership",
-    "constant": false,
-    "payable": false,
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "type": "event",
+    "anonymous": false,
+    "name": "Upgraded",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "implementation",
+        "indexed": true
+      }
+    ]
   },
   {
     "type": "function",
@@ -254,32 +286,6 @@ export default [
   },
   {
     "type": "function",
-    "name": "nomineeOwner",
-    "constant": true,
-    "stateMutability": "view",
-    "payable": false,
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "address"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "name": "owner",
-    "constant": true,
-    "stateMutability": "view",
-    "payable": false,
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "address"
-      }
-    ]
-  },
-  {
-    "type": "function",
     "name": "setFallbackAddress",
     "constant": false,
     "payable": false,
@@ -309,19 +315,5 @@ export default [
         "type": "bool"
       }
     ]
-  },
-  {
-    "type": "function",
-    "name": "transferOwnership",
-    "constant": false,
-    "payable": false,
-    "inputs": [
-      {
-        "type": "address",
-        "name": "account"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   }
 ] as const;

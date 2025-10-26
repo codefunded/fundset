@@ -2,7 +2,7 @@ import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import hre from 'hardhat';
-import { Abi } from 'viem';
+import { Abi, AbiFunction } from 'viem';
 
 /**
  * Attaches nonpayable to functions in the ABI that don't have a stateMutability. This is needed for viem typesafety to work.
@@ -11,7 +11,7 @@ import { Abi } from 'viem';
 const attachNonPayableToFunctionsAbiInFile = async (fullPath: string) => {
   const { default: content } = (await import(fullPath)) as { default: Abi };
   const newContent = content.map(abi => {
-    if (abi.type === 'function' && !abi.stateMutability) {
+    if (['function', 'constructor'].includes(abi.type) && !(abi as AbiFunction).stateMutability) {
       return {
         ...(abi as unknown as Abi[number]),
         stateMutability: 'nonpayable',

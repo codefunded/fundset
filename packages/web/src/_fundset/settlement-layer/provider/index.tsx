@@ -1,8 +1,6 @@
 import { ClientSideSettlementLayerProvider } from './client';
 import { SettlementLayerConfig } from './config.type';
 
-export { useSettlementLayer } from '..';
-
 export const SettlementLayerProvider = async ({
   children,
   configs,

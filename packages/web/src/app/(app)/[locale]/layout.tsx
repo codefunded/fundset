@@ -1,12 +1,13 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { SettlementLayerProvider } from '@/_fundset/settlement-layer/provider';
+import { SettlementLayerProvider } from '@/_fundset/settlement-layer/provider/index';
 import { TanstackQueryProvider } from '@/providers/TanstackQueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import I18nProvider from '@/providers/I18nProvider';
-import { getLocale } from 'next-intl/server';
 import { getSettlementLayerConfig } from '@/_fundset/config/getSettlementLayerConfig';
 import { ThemeEditor } from '@/features/theme/ThemeEditor';
+import { routing } from '@/i18n/routing';
+import { Locale } from 'next-intl';
 
 export const metadata: Metadata = {
   title: 'Fundset 2.0',
@@ -17,15 +18,19 @@ const CSSThemeStyleTag = ({ theme }: { theme: string }) => {
   return <style dangerouslySetInnerHTML={{ __html: theme }} />;
 };
 
+export const generateStaticParams = async () => {
+  return routing.locales.map(locale => ({ locale }));
+};
+
 export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }>) {
-  const [locale, { theme, settlementLayerConfigs }] = await Promise.all([
-    getLocale(),
-    getSettlementLayerConfig(),
-  ]);
+  const { theme, settlementLayerConfigs } = await getSettlementLayerConfig();
+  const locale = ((await params).locale ?? routing.defaultLocale) as Locale;
 
   return (
     <>
@@ -36,7 +41,7 @@ export default async function RootLayout({
           </head>
         )}
         <body className={`antialiased`}>
-          <I18nProvider>
+          <I18nProvider locale={locale}>
             <ThemeProvider
               attribute="class"
               defaultTheme="system"

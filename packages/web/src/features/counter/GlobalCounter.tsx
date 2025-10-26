@@ -1,5 +1,5 @@
 import { LoadingButton } from '@/components/ui/action-button';
-import { useSettlementLayer } from '@/_fundset/settlement-layer/provider';
+import { useSettlementLayer } from '@/_fundset/settlement-layer';
 import { useTranslations } from 'next-intl';
 import { ErrorAlert } from '../errors/ErrorAlert';
 import posthog from 'posthog-js';

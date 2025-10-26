@@ -11,7 +11,8 @@ export default [
         "type": "string",
         "name": "symbol"
       }
-    ]
+    ],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "error",

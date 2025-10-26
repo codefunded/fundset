@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import { DiamondProxy } from '../DiamondProxy.sol';
-import { IERC2535DiamondCutInternal } from '@solidstate/contracts/interfaces/IERC2535DiamondCut.sol';
+import { _IERC2535DiamondCut } from '@solidstate/contracts/interfaces/IERC2535DiamondCut.sol';
 import { CounterV1 } from './CounterV1.sol';
 import { CounterV2 } from './CounterV2.sol';
 import { Test } from 'forge-std/Test.sol';
@@ -21,8 +21,7 @@ contract CounterV2Test is Test {
     counterV1 = new CounterV1();
     counterV2 = new CounterV2();
 
-    IERC2535DiamondCutInternal.FacetCut[]
-      memory facetCuts = new IERC2535DiamondCutInternal.FacetCut[](2);
+    _IERC2535DiamondCut.FacetCut[] memory facetCuts = new _IERC2535DiamondCut.FacetCut[](2);
 
     bytes4[] memory selectorsV1 = new bytes4[](2);
     selectorsV1[0] = bytes4(keccak256('inc()'));
@@ -31,13 +30,13 @@ contract CounterV2Test is Test {
     bytes4[] memory selectorsV2 = new bytes4[](1);
     selectorsV2[0] = bytes4(keccak256('incBy(uint256)'));
 
-    facetCuts[0] = IERC2535DiamondCutInternal.FacetCut({
-      action: IERC2535DiamondCutInternal.FacetCutAction.ADD,
+    facetCuts[0] = _IERC2535DiamondCut.FacetCut({
+      action: _IERC2535DiamondCut.FacetCutAction.ADD,
       target: address(counterV1),
       selectors: selectorsV1
     });
-    facetCuts[1] = IERC2535DiamondCutInternal.FacetCut({
-      action: IERC2535DiamondCutInternal.FacetCutAction.ADD,
+    facetCuts[1] = _IERC2535DiamondCut.FacetCut({
+      action: _IERC2535DiamondCut.FacetCutAction.ADD,
       target: address(counterV2),
       selectors: selectorsV2
     });
