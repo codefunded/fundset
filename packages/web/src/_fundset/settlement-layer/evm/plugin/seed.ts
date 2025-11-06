@@ -11,6 +11,7 @@ const waitForContracts = async () => {
         ReturnType<typeof deploy>
       >;
     } catch {
+      delete require.cache[require.resolve('@fundset/contracts/localhost_deployed_contracts.json')];
       console.log('Waiting for contracts to be deployed...', 'localhost_deployed_contracts.json');
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
